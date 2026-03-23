@@ -1,0 +1,111 @@
+{
+  "projectType": "saas",
+  "projectName": "APPSeguimiento",
+  "projectDescription": "A Laravel-based web application for managing and tracking SENA apprentices, instructors, training programs, characterization records, and logbooks.",
+  "theme": "almond",
+  "primaryColor": "#040404",
+  "lightColor": "#ef370f",
+  "darkColor": "#f79d72",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Getting Started",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["introduction", "quickstart"]
+          },
+          {
+            "group": "Setup",
+            "pages": ["setup/installation", "setup/configuration", "setup/database"]
+          }
+        ]
+      },
+      {
+        "tab": "Features",
+        "groups": [
+          {
+            "group": "Authentication",
+            "pages": ["features/authentication"]
+          },
+          {
+            "group": "Core Modules",
+            "pages": [
+              "features/aprendices",
+              "features/instructores",
+              "features/fichas-de-caracterizacion",
+              "features/bitacoras",
+              "features/programas-de-formacion",
+              "features/centros-de-formacion"
+            ]
+          },
+          {
+            "group": "Administration",
+            "pages": [
+              "features/regionales",
+              "features/entes-coformadores",
+              "features/eps",
+              "features/roles-administrativos",
+              "features/tipos-de-documentos"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "Routes",
+            "pages": ["reference/routes"]
+          },
+          {
+            "group": "Data Models",
+            "pages": ["reference/models"]
+          },
+          {
+            "group": "Email Notifications",
+            "pages": ["reference/email-notifications"]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Apprentice (Aprendiz) management with search, create, edit, and delete",
+    "Instructor management with role assignments",
+    "Characterization record (Ficha de Caracterización) tracking tied to training programs and centers",
+    "Logbook (Bitácora) upload and management via PDF files",
+    "Training program and training center administration",
+    "Regional and administrative role management",
+    "Document type and EPS (health provider) catalog management",
+    "Email notifications on apprentice record creation, update, and deletion",
+    "Authentication with email/password login and session management",
+    "Paginated search across all major modules"
+  ],
+  "publicApiSurface": [
+    "GET /login — Show login form",
+    "POST /login — Authenticate user",
+    "POST /logout — Log out user",
+    "GET /usuarios/create — Show user registration form",
+    "POST /usuarios — Store new user",
+    "GET /welcome — Dashboard (auth required)",
+    "GET /aprendices — List apprentices with search",
+    "POST /aprendices — Create apprentice",
+    "GET /aprendices/{id} — View apprentice",
+    "PUT /aprendices/{id} — Update apprentice",
+    "DELETE /aprendices/{id} — Delete apprentice",
+    "GET /bitacoras — List logbooks",
+    "POST /bitacoras — Upload logbook PDF",
+    "GET /fichasdecaracterizacion — List characterization records",
+    "POST /fichasdecaracterizacion — Create characterization record",
+    "GET /instructores — List instructors",
+    "POST /instructores — Create instructor",
+    "GET /programas — List training programs",
+    "GET /centrosdeformacion — List training centers",
+    "GET /regionales — List regionals",
+    "GET /entecoformador — List co-training entities",
+    "GET /eps — List EPS providers",
+    "GET /rolesadministrativos — List administrative roles",
+    "GET /tiposdocumentos — List document types"
+  ]
+}
