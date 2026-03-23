@@ -109,7 +109,7 @@ APPSeguimiento define las siguientes tablas a través de sus modelos Eloquent:
 | `tblcentrosdeformacion` | `App\Models\centrosdeformacion` | Centros de formación vinculados a regionales |
 | `tblregionales` | `App\Models\regionales` | Regionales del SENA con código y denominación |
 | `tblentecoformador` | `App\Models\entecoformador` | Entes coformadores con razón social y datos de contacto |
-| `tbleps` | `App\Models\eps` | Entidades Prestadoras de Salud disponibles para asignar a aprendices e instructores |
+| `tbleps` | `App\Models\eps` | Entidades Promotoras de Salud disponibles para asignar a aprendices e instructores |
 | `tblrolesadministrativos` | `App\Models\rolesadministrativos` | Roles administrativos asignables a instructores |
 | `tbltiposdocumentos` | `App\Models\tiposdocumentos` | Tipos de documento de identidad (cédula, tarjeta de identidad, etc.) |
 | `tblusuarios` | `App\Models\User` | Usuarios del sistema con correo y contraseña de acceso |
@@ -159,7 +159,7 @@ Antes de registrar aprendices e instructores, debes cargar los datos de las tabl
 
 1. **Regionales** — `/regionales/create`
 2. **Centros de formación** — `/centrosdeformacion/create`
-3. **Programas de formación** — `/programasdeformacion/create`
+3. **Programas de formación** — `/programas/create`
 4. **Tipos de documentos** — `/tiposdocumentos/create`
 5. **EPS** — `/eps/create`
 6. **Roles administrativos** — `/rolesadministrativos/create`
