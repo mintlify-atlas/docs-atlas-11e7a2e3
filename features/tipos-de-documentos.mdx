@@ -1,0 +1,94 @@
+---
+title: "Tipos de Documentos"
+description: "Catálogo de tipos de documentos de identidad para aprendices, instructores y entes coformadores."
+---
+
+Los **tipos de documentos** conforman el catálogo de documentos de identidad admitidos por el sistema (por ejemplo: *Cédula de Ciudadanía*, *Tarjeta de Identidad*, *Cédula de Extranjería*, *NIT*, entre otros). Este catálogo es referenciado al registrar **aprendices**, **instructores** y **entes coformadores**.
+
+<Note>
+  Los tipos de documentos deben estar configurados **antes** de registrar aprendices, instructores o entes coformadores. Sin este catálogo completo, los formularios de registro no podrán mostrar las opciones de tipo de documento.
+</Note>
+
+## Rutas disponibles
+
+El módulo expone un recurso REST completo bajo el prefijo `/tiposdocumentos`:
+
+| Método | URL | Acción |
+|--------|-----|--------|
+| `GET` | `/tiposdocumentos` | Listado de todos los tipos de documentos |
+| `GET` | `/tiposdocumentos/create` | Formulario de creación |
+| `POST` | `/tiposdocumentos` | Guardar nuevo tipo de documento |
+| `GET` | `/tiposdocumentos/{Nis}` | Ver detalle |
+| `GET` | `/tiposdocumentos/{Nis}/edit` | Formulario de edición |
+| `PUT/PATCH` | `/tiposdocumentos/{Nis}` | Actualizar tipo de documento |
+| `DELETE` | `/tiposdocumentos/{Nis}` | Eliminar tipo de documento |
+
+<Info>
+  Al igual que los roles administrativos, el listado de tipos de documentos recupera todos los registros directamente desde `tbltiposdocumentos` sin paginación ni filtro de búsqueda.
+</Info>
+
+## Campos del modelo
+
+Tabla en base de datos: `tbltiposdocumentos`  
+Llave primaria: `Nis` (autoincremental)
+
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| `Denominacion` | string | Sí | Nombre del tipo de documento (p. ej. *Cédula de Ciudadanía*) |
+| `Observaciones` | text | No | Notas o aclaraciones sobre el tipo de documento |
+
+## Flujo de trabajo
+
+<Steps>
+  <Step title="Acceder al módulo">
+    En el menú de administración, seleccione **Tipos de Documentos**. Se mostrará el listado completo de tipos de documentos registrados.
+  </Step>
+
+  <Step title="Crear un tipo de documento">
+    Haga clic en **Nuevo Tipo de Documento** y complete el formulario:
+    - **Denominacion** — nombre del tipo de documento (obligatorio). Ejemplos: *Cédula de Ciudadanía*, *Tarjeta de Identidad*, *NIT*.
+    - **Observaciones** — notas adicionales sobre el tipo (opcional).
+
+    Presione **Guardar**. El sistema redirige al mismo formulario con el mensaje *"Tipo de documento registrado correctamente"*.
+  </Step>
+
+  <Step title="Editar un tipo de documento">
+    Desde el listado, use **Editar** para modificar la `Denominacion` o las `Observaciones`. Al guardar, el sistema redirige al listado con el mensaje *"Tipo de documento actualizado correctamente"*.
+  </Step>
+
+  <Step title="Eliminar un tipo de documento">
+    Haga clic en **Eliminar** en el registro correspondiente. Verifique que ningún aprendiz, instructor ni ente coformador esté usando ese tipo de documento antes de eliminarlo.
+  </Step>
+</Steps>
+
+<Warning>
+  Eliminar un tipo de documento que esté siendo usado por aprendices, instructores o entes coformadores generará errores de integridad referencial. Asegúrese de que no existan registros dependientes antes de proceder con la eliminación.
+</Warning>
+
+## Relaciones
+
+<AccordionGroup>
+  <Accordion title="Aprendices (hasMany)">
+    La tabla de aprendices (`tblaprendices`) contiene una clave foránea hacia `tbltiposdocumentos.Nis`. Cada tipo de documento puede estar asociado a múltiples aprendices.
+  </Accordion>
+  <Accordion title="Instructores (hasMany)">
+    De forma análoga, la tabla de instructores referencia `tbltiposdocumentos.Nis`, permitiendo clasificar el documento de identidad de cada instructor.
+  </Accordion>
+  <Accordion title="Entes Coformadores (hasMany)">
+    Los entes coformadores también referencian este catálogo mediante `tbltiposdocumentos_Nis`. La relación `belongsTo` está declarada explícitamente en el modelo `entecoformador`.
+  </Accordion>
+</AccordionGroup>
+
+## Módulos relacionados
+
+<CardGroup cols={2}>
+  <Card title="Aprendices" icon="user-graduate" href="/features/aprendices">
+    El tipo de documento se selecciona al registrar un aprendiz.
+  </Card>
+  <Card title="Instructores" icon="chalkboard-teacher" href="/features/instructores">
+    El tipo de documento también se exige al registrar instructores.
+  </Card>
+  <Card title="Entes Coformadores" icon="building" href="/features/entes-coformadores">
+    Los entes coformadores requieren seleccionar el tipo de documento de la entidad.
+  </Card>
+</CardGroup>

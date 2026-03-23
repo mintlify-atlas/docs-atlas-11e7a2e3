@@ -1,0 +1,173 @@
+---
+title: "Notificaciones por Correo"
+description: "Sistema de notificaciones automáticas por correo electrónico al gestionar aprendices"
+---
+
+APPSeguimiento envía notificaciones automáticas por correo electrónico cuando se crean, actualizan o eliminan registros de aprendices. Este sistema está implementado mediante model events de Eloquent en el modelo `aprendices`.
+
+<Note>
+Las notificaciones por correo están implementadas únicamente para el módulo de **aprendices**. Los módulos de instructores, fichas y otros no generan notificaciones.
+</Note>
+
+## Eventos de modelo
+
+El modelo `aprendices` define tres eventos en el método `booted()`:
+
+| Evento | Cuándo se dispara | Tipo de acción enviada | Incluye cambios |
+|--------|------------------|------------------------|-----------------|
+| `created` | Al guardar un nuevo aprendiz | `'Registro creado'` | No |
+| `updated` | Al actualizar un aprendiz existente | `'Registro actualizado'` | Sí (campo por campo) |
+| `deleted` | Al eliminar un aprendiz | `'Registro eliminado'` | No |
+
+```php aprendices.php
+protected static function booted()
+{
+    static::created(function ($aprendiz) {
+        Mail::to(config('mail.from.address'))
+            ->send(new \App\Mail\AprendizMail($aprendiz, 'Registro creado'));
+    });
+
+    static::updated(function ($aprendiz) {
+        $cambios = [];
+        foreach ($aprendiz->getChanges() as $campo => $valorNuevo) {
+            if ($campo != 'updated_at') {
+                $valorAnterior = $aprendiz->getOriginal($campo);
+                $cambios[$campo] = [
+                    'antes' => $valorAnterior,
+                    'despues' => $valorNuevo
+                ];
+            }
+        }
+        Mail::to(config('mail.from.address'))
+            ->send(new \App\Mail\AprendizMail($aprendiz, 'Registro actualizado', $cambios));
+    });
+
+    static::deleted(function ($aprendiz) {
+        Mail::to(config('mail.from.address'))
+            ->send(new \App\Mail\AprendizMail($aprendiz, 'Registro eliminado'));
+    });
+}
+```
+
+## Clase AprendizMail
+
+La clase `App\Mail\AprendizMail` es el Mailable que construye el correo:
+
+```php AprendizMail.php
+class AprendizMail extends Mailable
+{
+    public $aprendiz;
+    public $accion;
+    public $cambios;
+
+    public function __construct($aprendiz, $accion, $cambios = [])
+    {
+        $this->aprendiz = $aprendiz;
+        $this->accion = $accion;
+        $this->cambios = $cambios;
+    }
+
+    public function build()
+    {
+        return $this->subject('Notificación del sistema')
+            ->view('emails.aprendiz');
+    }
+}
+```
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `$aprendiz` | `App\Models\aprendices` | Instancia del aprendiz involucrado |
+| `$accion` | `string` | Texto descriptivo de la acción realizada |
+| `$cambios` | `array` | Mapa de campos modificados (solo en `updated`) |
+
+## Plantilla del correo
+
+La vista `resources/views/emails/aprendiz.blade.php` genera el cuerpo del correo en HTML:
+
+```blade emails/aprendiz.blade.php
+<h2>Sistema de Seguimiento de Aprendices</h2>
+
+<p><strong>Acción:</strong> {{ $accion }}</p>
+
+<h3>Datos del aprendiz</h3>
+<ul>
+    <li><strong>NIS:</strong> {{ $aprendiz->Nis }}</li>
+    <li><strong>Tipo de documento:</strong> {{ $aprendiz->tipodocumento->Denominacion }}</li>
+    <li><strong>Documento:</strong> {{ $aprendiz->NumDoc }}</li>
+    <li><strong>Nombre:</strong> {{ $aprendiz->Nombres }} {{ $aprendiz->Apellidos }}</li>
+    <li><strong>Dirección:</strong> {{ $aprendiz->Direccion }}</li>
+    <li><strong>Teléfono:</strong> {{ $aprendiz->Telefono }}</li>
+    <li><strong>Correo Institucional:</strong> {{ $aprendiz->CorreoInstitucional }}</li>
+    <li><strong>Correo:</strong> {{ $aprendiz->CorreoPersonal }}</li>
+    <li><strong>Sexo:</strong> {{ $aprendiz->sexo_texto }}</li>
+    <li><strong>EPS:</strong> {{ $aprendiz->eps->Denominacion }}</li>
+</ul>
+
+@if(!empty($cambios))
+<h3>Cambios realizados</h3>
+<table border="1">
+    <tr><th>Campo</th><th>Antes</th><th>Después</th></tr>
+    @foreach($cambios as $campo => $valor)
+    <tr>
+        <td>{{ $campo }}</td>
+        <td>{{ $valor['antes'] }}</td>
+        <td>{{ $valor['despues'] }}</td>
+    </tr>
+    @endforeach
+</table>
+@endif
+```
+
+La tabla de cambios solo aparece en el correo de actualización cuando `$cambios` no está vacío.
+
+## Destino del correo
+
+Todos los correos se envían a la dirección configurada en `MAIL_FROM_ADDRESS` del archivo `.env`:
+
+```env .env
+MAIL_FROM_ADDRESS="notificaciones@ejemplo.com"
+MAIL_FROM_NAME="APPSeguimiento"
+```
+
+<Warning>
+En el entorno de desarrollo, el valor por defecto de `MAIL_MAILER` es `log`. Esto significa que los correos **no se envían realmente** — se registran en el archivo `storage/logs/laravel.log`. Cambia a `smtp` en producción.
+</Warning>
+
+## Configuración para producción
+
+Para que los correos lleguen a una bandeja real, configura un servidor SMTP en `.env`:
+
+```env .env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.tuproveedor.com
+MAIL_PORT=587
+MAIL_USERNAME=tu_usuario@ejemplo.com
+MAIL_PASSWORD=tu_contraseña
+MAIL_FROM_ADDRESS="notificaciones@tudominio.com"
+MAIL_FROM_NAME="APPSeguimiento"
+```
+
+<Tip>
+Para pruebas en desarrollo puedes usar [Mailtrap](https://mailtrap.io) o [Mailpit](https://github.com/axllent/mailpit) como servidor SMTP de prueba. Esto te permite ver los correos en una bandeja virtual sin enviarlos a destinatarios reales.
+</Tip>
+
+## Estructura del array de cambios
+
+Cuando un aprendiz es actualizado, el evento `updated` construye un array con los cambios campo por campo:
+
+```php
+// Ejemplo de array $cambios para una actualización de teléfono
+[
+    'Telefono' => [
+        'antes'   => '3001234567',
+        'despues' => '3109876543'
+    ],
+    'Direccion' => [
+        'antes'   => 'Calle 10 # 5-20',
+        'despues' => 'Carrera 7 # 15-30'
+    ]
+]
+```
+
+El campo `updated_at` se excluye explícitamente del registro de cambios.

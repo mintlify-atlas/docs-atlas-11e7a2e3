@@ -1,0 +1,114 @@
+---
+title: "Fichas de Caracterización"
+description: "Gestión de fichas de caracterización vinculadas a programas y centros de formación"
+---
+
+Una **ficha de caracterización** es el registro que identifica una cohorte de formación del SENA. Vincula un programa de formación específico con el centro de formación donde se ejecuta, establece el cupo disponible y define el rango de fechas de la etapa formativa.
+
+## Flujo de trabajo
+
+<Steps>
+  <Step title="Consultar el listado">
+    Navegar a `GET /fichasdecaracterizacion`. Se muestra una tabla paginada con 10 fichas por página. Se pueden buscar por `Codigo` o `Denominacion`.
+  </Step>
+  <Step title="Crear una ficha">
+    Ir a `GET /fichasdecaracterizacion/create`. El formulario carga todos los programas y centros de formación disponibles. Completar todos los campos requeridos y enviar.
+  </Step>
+  <Step title="Guardar la ficha">
+    El formulario hace `POST /fichasdecaracterizacion`. El controlador valida los datos, incluyendo que el programa y el centro existan en la base de datos, y llama a `fichadecaracterizacion::create($request->all())`.
+  </Step>
+  <Step title="Ver detalle">
+    Navegar a `GET /fichasdecaracterizacion/{Nis}`. Se muestra la ficha con las relaciones `programasdeformacion` y `centrosdeformacion` cargadas.
+  </Step>
+  <Step title="Editar una ficha">
+    Ir a `GET /fichasdecaracterizacion/{Nis}/edit`. El formulario pre-carga los datos actuales junto con los catálogos de programas y centros. Al enviar se hace `PUT /fichasdecaracterizacion/{Nis}`.
+  </Step>
+  <Step title="Eliminar una ficha">
+    Enviar `DELETE /fichasdecaracterizacion/{Nis}`. El sistema redirige al listado con el mensaje **'Ficha de caracterizacion eliminada correctamente'**.
+  </Step>
+</Steps>
+
+## Campos del formulario
+
+| Campo | Columna en BD | Tipo | Requerido | Descripción |
+|---|---|---|---|---|
+| Código | `Codigo` | string | Sí | Código único que identifica la ficha |
+| Denominación | `Denominacion` | string | Sí | Nombre descriptivo de la ficha |
+| Cupo | `Cupo` | integer | Sí | Número máximo de aprendices en la cohorte |
+| Fecha de inicio | `FechaInicio` | date | Sí | Fecha de inicio de la etapa formativa |
+| Fecha de fin | `FechaFin` | date | Sí | Fecha de finalización de la etapa formativa |
+| Programa de formación | `tblprogramasdeformacion_Nis` | FK → `tblprogramasdeformacion` | Sí | Programa al que pertenece la ficha |
+| Centro de formación | `tblcentrosdeformacion_Nis` | FK → `tblcentrosdeformacion` | Sí | Centro donde se ejecuta el programa |
+| Observaciones | `Observaciones` | text | No | Notas u observaciones adicionales |
+
+## Reglas de validación
+
+```php
+// app/Http/Controllers/fichasdecaracterizacionController.php — método store()
+$request->validate([
+    'Codigo'                      => 'required',
+    'Denominacion'                => 'required',
+    'Cupo'                        => 'required',
+    'FechaInicio'                 => 'required',
+    'FechaFin'                    => 'required',
+    'tblprogramasdeformacion_Nis' => 'required|exists:tblprogramasdeformacion,Nis',
+    'tblcentrosdeformacion_Nis'   => 'required|exists:tblcentrosdeformacion,Nis',
+]);
+```
+
+## Modelo
+
+El modelo `fichadecaracterizacion` usa la tabla `tblfichasdecaracterizacion` con la llave primaria `Nis`:
+
+```php
+// app/Models/fichadecaracterizacion.php
+protected $fillable = [
+    'Codigo', 'Denominacion', 'Cupo', 'FechaInicio', 'FechaFin',
+    'Observaciones', 'tblprogramasdeformacion_Nis', 'tblcentrosdeformacion_Nis'
+];
+```
+
+## Estructura de relaciones
+
+<AccordionGroup>
+  <Accordion title="programasdeformacion (belongsTo)">
+    La ficha pertenece a un programa de formación. La relación se define como:
+
+    ```php
+    public function programasdeformacion()
+    {
+        return $this->belongsTo(programasdeformacion::class, 'tblprogramasdeformacion_Nis', 'Nis');
+    }
+    ```
+
+    El programa define el contenido curricular que se dicta en la ficha. El catálogo de programas se gestiona en el módulo [Programas de Formación](/features/programas-de-formacion).
+  </Accordion>
+  <Accordion title="centrosdeformacion (belongsTo)">
+    La ficha está asociada a un centro de formación donde se ejecuta físicamente. La relación se define como:
+
+    ```php
+    public function centrosdeformacion()
+    {
+        return $this->belongsTo(centrosdeformacion::class, 'tblcentrosdeformacion_Nis', 'Nis');
+    }
+    ```
+
+    El catálogo de centros se gestiona en el módulo [Centros de Formación](/features/centros-de-formacion).
+  </Accordion>
+</AccordionGroup>
+
+## Búsqueda
+
+El listado acepta el parámetro `buscar` por query string. La búsqueda filtra por `Codigo` o `Denominacion`.
+
+## Rutas disponibles
+
+| Método | URI | Acción |
+|---|---|---|
+| GET | `/fichasdecaracterizacion` | Listado paginado |
+| GET | `/fichasdecaracterizacion/create` | Formulario de creación |
+| POST | `/fichasdecaracterizacion` | Guardar nueva ficha |
+| GET | `/fichasdecaracterizacion/{Nis}` | Ver detalle |
+| GET | `/fichasdecaracterizacion/{Nis}/edit` | Formulario de edición |
+| PUT | `/fichasdecaracterizacion/{Nis}` | Actualizar ficha |
+| DELETE | `/fichasdecaracterizacion/{Nis}` | Eliminar ficha |

@@ -1,0 +1,169 @@
+---
+title: "Base de datos"
+description: "Configuración de base de datos y migraciones en APPSeguimiento"
+---
+
+APPSeguimiento es compatible con múltiples motores de base de datos a través del ORM Eloquent de Laravel. La conexión predeterminada es **SQLite**, ideal para desarrollo local. Para producción se recomienda **MySQL** o **PostgreSQL**.
+
+## Motores compatibles
+
+| Motor | Versión | Uso recomendado |
+|---|---|---|
+| SQLite | 3.x | Desarrollo local, pruebas |
+| MySQL | 8.0+ | Producción |
+| MariaDB | 10.4+ | Producción |
+| PostgreSQL | 14+ | Producción |
+
+## Configuración predeterminada (SQLite)
+
+En el archivo `.env.example`, la conexión predeterminada es SQLite:
+
+```env
+DB_CONNECTION=sqlite
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=laravel
+# DB_USERNAME=root
+# DB_PASSWORD=
+```
+
+El archivo de base de datos SQLite se ubica en `database/database.sqlite`. Créalo antes de ejecutar las migraciones:
+
+```bash
+touch database/database.sqlite
+php artisan migrate
+```
+
+## Cambiar a MySQL
+
+Para usar MySQL en producción, actualiza las siguientes variables en tu archivo `.env`:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=appseguimiento
+DB_USERNAME=appseguimiento_user
+DB_PASSWORD=tu_contrasena_segura
+```
+
+Luego crea la base de datos en MySQL y ejecuta las migraciones:
+
+```bash
+# Crear la base de datos en MySQL
+mysql -u root -p -e "CREATE DATABASE appseguimiento CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# Ejecutar migraciones
+php artisan migrate
+```
+
+## Cambiar a PostgreSQL
+
+Para usar PostgreSQL, actualiza el archivo `.env`:
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=appseguimiento
+DB_USERNAME=appseguimiento_user
+DB_PASSWORD=tu_contrasena_segura
+```
+
+## Ejecutar migraciones
+
+Las migraciones crean y actualizan el esquema de la base de datos:
+
+```bash
+# Ejecutar todas las migraciones pendientes
+php artisan migrate
+
+# Ejecutar migraciones forzando en producción (sin confirmación interactiva)
+php artisan migrate --force
+
+# Ver el estado de las migraciones
+php artisan migrate:status
+
+# Revertir la última migración
+php artisan migrate:rollback
+
+# Resetear y volver a ejecutar todas las migraciones
+php artisan migrate:fresh
+```
+
+<Warning>
+  `php artisan migrate:fresh` **elimina todas las tablas** y las recrea desde cero. Nunca lo ejecutes en producción con datos reales.
+</Warning>
+
+## Tablas del sistema
+
+APPSeguimiento define las siguientes tablas a través de sus modelos Eloquent:
+
+| Tabla | Modelo | Propósito |
+|---|---|---|
+| `tblaprendices` | `App\Models\aprendices` | Datos personales de los aprendices: número de documento, nombres, apellidos, dirección, teléfono, correos, sexo y fecha de nacimiento |
+| `tblinstructores` | `App\Models\instructores` | Datos de instructores con rol administrativo asignado |
+| `tblfichasdecaracterizacion` | `App\Models\fichadecaracterizacion` | Fichas vinculadas a programas y centros de formación, con cupos, fechas y observaciones |
+| `tblbitacoras` | `App\Models\bitacoras` | Registros de bitácoras PDF: nombre de archivo, ruta, estado y usuario responsable |
+| `tblprogramasdeformacion` | `App\Models\programasdeformacion` | Catálogo de programas de formación con código y denominación |
+| `tblcentrosdeformacion` | `App\Models\centrosdeformacion` | Centros de formación vinculados a regionales |
+| `tblregionales` | `App\Models\regionales` | Regionales del SENA con código y denominación |
+| `tblentecoformador` | `App\Models\entecoformador` | Entes coformadores con razón social y datos de contacto |
+| `tbleps` | `App\Models\eps` | Entidades Prestadoras de Salud disponibles para asignar a aprendices e instructores |
+| `tblrolesadministrativos` | `App\Models\rolesadministrativos` | Roles administrativos asignables a instructores |
+| `tbltiposdocumentos` | `App\Models\tiposdocumentos` | Tipos de documento de identidad (cédula, tarjeta de identidad, etc.) |
+| `tblusuarios` | `App\Models\User` | Usuarios del sistema con correo y contraseña de acceso |
+| `users` | — | Tabla de usuarios estándar de Laravel (migración base) |
+| `sessions` | — | Sesiones activas de usuarios (driver `database`) |
+| `cache` | — | Caché de la aplicación (store `database`) |
+| `jobs` | — | Cola de trabajos pendientes (conexión `database`) |
+
+## Relaciones entre tablas
+
+Las relaciones principales del esquema son:
+
+<AccordionGroup>
+  <Accordion title="Aprendices e instructores">
+    Tanto `tblaprendices` como `tblinstructores` tienen claves foráneas hacia:
+    - `tbltiposdocumentos` — tipo de documento de identidad (`tbltiposdocumentos_Nis`)
+    - `tbleps` — entidad de salud asignada (`tbleps_Nis`)
+
+    Los instructores además tienen relación con `tblrolesadministrativos` (`tblrolesadministrativos_Nis`).
+  </Accordion>
+
+  <Accordion title="Fichas de caracterización">
+    `tblfichasdecaracterizacion` tiene claves foráneas hacia:
+    - `tblprogramasdeformacion` — programa de formación asociado (`tblprogramasdeformacion_Nis`)
+    - `tblcentrosdeformacion` — centro de formación donde se imparte (`tblcentrosdeformacion_Nis`)
+  </Accordion>
+
+  <Accordion title="Centros de formación">
+    `tblcentrosdeformacion` tiene clave foránea hacia:
+    - `tblregionales` — regional a la que pertenece el centro (`tblregionales_Nis`)
+  </Accordion>
+
+  <Accordion title="Bitácoras">
+    `tblbitacoras` tiene clave foránea hacia:
+    - `tblusuarios` — usuario que cargó la bitácora (`tblusuarios_Nis`)
+  </Accordion>
+
+  <Accordion title="Entes coformadores">
+    `tblentecoformador` tiene clave foránea hacia:
+    - `tbltiposdocumentos` — tipo de documento del ente coformador (`tbltiposdocumentos_Nis`)
+  </Accordion>
+</AccordionGroup>
+
+## Cargar datos de catálogos
+
+Antes de registrar aprendices e instructores, debes cargar los datos de las tablas de referencia. Puedes hacerlo desde los módulos de administración:
+
+1. **Regionales** — `/regionales/create`
+2. **Centros de formación** — `/centrosdeformacion/create`
+3. **Programas de formación** — `/programasdeformacion/create`
+4. **Tipos de documentos** — `/tiposdocumentos/create`
+5. **EPS** — `/eps/create`
+6. **Roles administrativos** — `/rolesadministrativos/create`
+
+<Note>
+  Los tipos de documentos y la EPS deben existir en la base de datos antes de registrar aprendices o instructores, ya que son campos requeridos en sus formularios de creación.
+</Note>

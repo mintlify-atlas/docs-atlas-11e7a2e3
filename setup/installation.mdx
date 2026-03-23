@@ -1,0 +1,192 @@
+---
+title: "Instalación"
+description: "Requisitos del sistema e instalación paso a paso de APPSeguimiento"
+---
+
+## Requisitos del sistema
+
+Antes de instalar APPSeguimiento, verifica que tu entorno cumple con los siguientes requisitos:
+
+| Requisito | Versión mínima | Notas |
+|---|---|---|
+| PHP | 8.2+ | Con extensiones `pdo`, `pdo_sqlite`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json` |
+| Composer | 2.x | Gestor de dependencias PHP |
+| Node.js | 18+ | Para compilar activos con Vite |
+| npm | 9+ | Incluido con Node.js |
+| SQLite | 3.x | Para desarrollo (predeterminado) |
+| MySQL | 8.0+ | Para producción (opcional) |
+| PostgreSQL | 14+ | Para producción (opcional) |
+| Git | — | Para clonar el repositorio |
+
+<Note>
+  APPSeguimiento usa **SQLite** como base de datos predeterminada. No necesitas instalar MySQL ni PostgreSQL para comenzar en desarrollo. Consulta la [guía de base de datos](/setup/database) para cambiar a otro motor.
+</Note>
+
+## Instalación paso a paso
+
+<Steps>
+  <Step title="Clonar el repositorio">
+    Clona el repositorio desde GitHub y accede al directorio del proyecto:
+
+    ```bash
+    git clone https://github.com/DavidTorresT/APPSeguimiento.git
+    cd APPSeguimiento
+    ```
+  </Step>
+
+  <Step title="Instalar dependencias PHP">
+    Instala todas las dependencias definidas en `composer.json`:
+
+    ```bash
+    composer install
+    ```
+
+    Esto instala Laravel 12, Laravel Tinker y todas las dependencias de desarrollo como PHPUnit, Laravel Pail y Laravel Sail.
+  </Step>
+
+  <Step title="Instalar dependencias JavaScript">
+    Instala los paquetes de Node.js definidos en `package.json`:
+
+    ```bash
+    npm install
+    ```
+
+    Esto instala Vite 7, Tailwind CSS 4, el plugin de Laravel para Vite y Axios.
+  </Step>
+
+  <Step title="Configurar las variables de entorno">
+    Copia el archivo de entorno de ejemplo:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    Genera la clave de aplicación (cifrado AES-256-CBC):
+
+    ```bash
+    php artisan key:generate
+    ```
+
+    <Warning>
+      Nunca uses el mismo `APP_KEY` en múltiples entornos. Cada instalación (desarrollo, staging, producción) debe tener su propia clave generada de forma independiente.
+    </Warning>
+  </Step>
+
+  <Step title="Crear el archivo SQLite y ejecutar migraciones">
+    Crea el archivo de base de datos SQLite y ejecuta las migraciones:
+
+    ```bash
+    touch database/database.sqlite
+    php artisan migrate
+    ```
+
+    <Tip>
+      Si usas MySQL o PostgreSQL, configura primero las variables `DB_*` en tu archivo `.env` antes de ejecutar las migraciones. Consulta la [guía de base de datos](/setup/database).
+    </Tip>
+  </Step>
+
+  <Step title="Compilar los activos frontend">
+    Compila los archivos CSS y JavaScript para producción:
+
+    ```bash
+    npm run build
+    ```
+
+    Vite procesa `resources/css/app.css` (Tailwind CSS) y `resources/js/app.js` (Axios) y genera los activos optimizados en `public/build/`.
+  </Step>
+
+  <Step title="Crear el enlace de almacenamiento">
+    Crea el enlace simbólico para que los archivos subidos (bitácoras PDF) sean accesibles públicamente:
+
+    ```bash
+    php artisan storage:link
+    ```
+
+    Esto vincula `storage/app/public` con `public/storage`.
+  </Step>
+
+  <Step title="Iniciar el servidor">
+    Levanta el servidor de desarrollo:
+
+    ```bash
+    php artisan serve
+    ```
+
+    Accede a la aplicación en [http://localhost:8000](http://localhost:8000).
+  </Step>
+</Steps>
+
+## Instalación automatizada con `composer setup`
+
+El proyecto incluye un script `setup` en `composer.json` que automatiza los pasos de instalación:
+
+```bash
+composer setup
+```
+
+Este comando ejecuta en secuencia:
+
+```json
+"setup": [
+    "composer install",
+    "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+    "@php artisan key:generate",
+    "@php artisan migrate --force",
+    "npm install",
+    "npm run build"
+]
+```
+
+<Note>
+  El script `composer setup` no crea el archivo `database/database.sqlite` automáticamente. Si usas SQLite, ejecuta `touch database/database.sqlite` antes de correr `composer setup`.
+</Note>
+
+## Entorno de desarrollo completo
+
+Para desarrollo con recarga en caliente, el proyecto incluye el script `composer dev` que inicia los cuatro procesos necesarios de forma concurrente:
+
+```bash
+composer dev
+```
+
+Este comando lanza simultáneamente:
+
+| Proceso | Comando | Descripción |
+|---|---|---|
+| `server` | `php artisan serve` | Servidor HTTP de Laravel en el puerto 8000 |
+| `queue` | `php artisan queue:listen --tries=1 --timeout=0` | Procesador de trabajos en cola (emails) |
+| `logs` | `php artisan pail --timeout=0` | Inspector de logs en tiempo real |
+| `vite` | `npm run dev` | Servidor de desarrollo de Vite con HMR |
+
+<Tip>
+  El proceso `queue` es necesario cuando `QUEUE_CONNECTION=database` para que las notificaciones por correo se envíen de forma asíncrona. Si prefieres envío sincrónico en desarrollo, cambia `QUEUE_CONNECTION=sync` en tu `.env`.
+</Tip>
+
+## Comandos de referencia rápida
+
+<CodeGroup>
+
+```bash Instalación completa
+# Clonar e instalar
+git clone https://github.com/DavidTorresT/APPSeguimiento.git
+cd APPSeguimiento
+touch database/database.sqlite
+composer setup
+php artisan storage:link
+```
+
+```bash Desarrollo diario
+# Iniciar todos los servicios
+composer dev
+```
+
+```bash Solo servidor
+# Sin Vite ni queue
+php artisan serve
+```
+
+```bash Compilar para producción
+npm run build
+```
+
+</CodeGroup>

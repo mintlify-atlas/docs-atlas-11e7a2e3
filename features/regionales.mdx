@@ -1,0 +1,91 @@
+---
+title: "Regionales"
+description: "Gestión de regionales geográficas del SENA para la organización de centros de formación."
+---
+
+Las **regionales** son las divisiones geográficas que el SENA utiliza para agrupar y administrar sus centros de formación a nivel nacional. Cada centro de formación pertenece a una regional, por lo que este catálogo debe configurarse antes de registrar centros.
+
+## Rutas disponibles
+
+El módulo expone un recurso REST completo bajo el prefijo `/regionales`:
+
+| Método | URL | Acción |
+|--------|-----|--------|
+| `GET` | `/regionales` | Listado con búsqueda y paginación |
+| `GET` | `/regionales/create` | Formulario de creación |
+| `POST` | `/regionales` | Guardar nueva regional |
+| `GET` | `/regionales/{Nis}` | Ver detalle |
+| `GET` | `/regionales/{Nis}/edit` | Formulario de edición |
+| `PUT/PATCH` | `/regionales/{Nis}` | Actualizar regional |
+| `DELETE` | `/regionales/{Nis}` | Eliminar regional |
+
+## Campos del modelo
+
+Tabla en base de datos: `tblregionales`  
+Llave primaria: `Nis` (autoincremental)
+
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| `Codigo` | string | Sí | Código identificador único de la regional |
+| `Denominacion` | string | Sí | Nombre oficial de la regional |
+| `Observaciones` | text | No | Notas o comentarios adicionales |
+
+## Búsqueda
+
+El listado (`index`) admite un parámetro `buscar` en la URL que filtra simultáneamente por `Codigo` y `Denominacion` usando búsqueda parcial (`LIKE`):
+
+```
+GET /regionales?buscar=antioquia
+```
+
+Los resultados se paginan de 10 en 10 y el término de búsqueda se conserva al navegar entre páginas.
+
+## Flujo de trabajo
+
+<Steps>
+  <Step title="Acceder al módulo">
+    En el menú de administración, seleccione **Regionales**. Se mostrará el listado paginado de todas las regionales registradas.
+  </Step>
+
+  <Step title="Crear una regional">
+    Haga clic en **Nueva Regional** y complete el formulario:
+    - **Codigo** — código único de la regional (obligatorio).
+    - **Denominacion** — nombre de la regional (obligatorio).
+    - **Observaciones** — información adicional (opcional).
+
+    Presione **Guardar**. El sistema redirige al mismo formulario con el mensaje *"Regional registrada correctamente"*.
+  </Step>
+
+  <Step title="Consultar o editar">
+    Desde el listado use el botón **Ver** para consultar el detalle, o **Editar** para modificar los datos de una regional existente. Los mismos campos están disponibles en la edición.
+  </Step>
+
+  <Step title="Eliminar una regional">
+    Haga clic en **Eliminar** en el listado. La operación es irreversible; asegúrese de que ningún centro de formación esté asociado a la regional antes de eliminarla.
+  </Step>
+</Steps>
+
+<Warning>
+  Eliminar una regional que tiene centros de formación asociados puede provocar errores de integridad referencial en la base de datos. Reasigne o elimine primero los centros dependientes.
+</Warning>
+
+## Relaciones
+
+<AccordionGroup>
+  <Accordion title="Centros de formación (hasMany)">
+    Aunque la relación `hasMany` hacia `centrosdeformacion` no está declarada explícitamente en el modelo `regionales`, la tabla `tblcentrosdeformacion` incluye una clave foránea que apunta a `tblregionales.Nis`. Esto significa que cada regional puede agrupar múltiples centros de formación.
+
+    Al registrar un **Centro de Formación** deberá seleccionar la regional a la que pertenece. Por ello se recomienda poblar este catálogo antes de registrar centros.
+  </Accordion>
+</AccordionGroup>
+
+## Módulos relacionados
+
+<CardGroup cols={2}>
+  <Card title="Centros de Formación" icon="building" href="/features/centros-de-formacion">
+    Cada centro pertenece a una regional. Configure las regionales primero.
+  </Card>
+  <Card title="Programas de Formación" icon="graduation-cap" href="/features/programas-de-formacion">
+    Los programas se ofrecen desde centros, que a su vez están agrupados por regional.
+  </Card>
+</CardGroup>

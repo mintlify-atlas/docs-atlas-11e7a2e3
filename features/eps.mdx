@@ -1,0 +1,96 @@
+---
+title: "EPS"
+description: "Catálogo de Entidades Promotoras de Salud para el registro de aprendices e instructores."
+---
+
+Las **EPS** (Entidades Promotoras de Salud) forman el catálogo de aseguradoras de salud disponibles en el sistema. Este catálogo se utiliza al momento de registrar **aprendices** e **instructores**, permitiendo asociar a cada persona su entidad de salud correspondiente.
+
+<Note>
+  El catálogo de EPS debe estar poblado **antes** de registrar aprendices o instructores. Sin al menos una EPS activa en el sistema, no será posible completar el formulario de registro de estos usuarios.
+</Note>
+
+## Rutas disponibles
+
+El módulo expone un recurso REST completo bajo el prefijo `/eps`:
+
+| Método | URL | Acción |
+|--------|-----|--------|
+| `GET` | `/eps` | Listado con búsqueda y paginación |
+| `GET` | `/eps/create` | Formulario de creación |
+| `POST` | `/eps` | Guardar nueva EPS |
+| `GET` | `/eps/{Nis}` | Ver detalle |
+| `GET` | `/eps/{Nis}/edit` | Formulario de edición |
+| `PUT/PATCH` | `/eps/{Nis}` | Actualizar EPS |
+| `DELETE` | `/eps/{Nis}` | Eliminar EPS |
+
+## Campos del modelo
+
+Tabla en base de datos: `tbleps`  
+Llave primaria: `Nis` (autoincremental)
+
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| `Numdoc` | string | Sí | Número de documento o NIT de la EPS |
+| `Denominacion` | string | Sí | Nombre oficial de la EPS |
+| `Observaciones` | text | No | Notas o comentarios adicionales |
+
+## Búsqueda
+
+El listado admite el parámetro `buscar` que filtra simultáneamente por `NumDoc` y `Denominacion`:
+
+```
+GET /eps?buscar=sura
+```
+
+Los resultados se paginan de 10 en 10 y el término se conserva al navegar entre páginas.
+
+## Flujo de trabajo
+
+<Steps>
+  <Step title="Acceder al módulo">
+    En el menú de administración, seleccione **EPS**. Se mostrará el listado paginado de todas las entidades promotoras de salud registradas.
+  </Step>
+
+  <Step title="Crear una EPS">
+    Haga clic en **Nueva EPS** y complete el formulario:
+    - **Numdoc** — número de documento o NIT de la entidad (obligatorio).
+    - **Denominacion** — nombre de la EPS (obligatorio).
+    - **Observaciones** — información adicional (opcional).
+
+    Presione **Guardar**. El sistema redirige al mismo formulario con el mensaje *"Eps registrada correctamente"*.
+  </Step>
+
+  <Step title="Consultar o editar">
+    Desde el listado use **Ver** para consultar el detalle o **Editar** para modificar los datos. La actualización también permite cambiar el campo `Observaciones` aunque no haya sido diligenciado inicialmente.
+  </Step>
+
+  <Step title="Eliminar una EPS">
+    Haga clic en **Eliminar** en el registro correspondiente. Verifique que ningún aprendiz ni instructor esté afiliado a la EPS antes de eliminarla.
+  </Step>
+</Steps>
+
+<Warning>
+  Eliminar una EPS que tenga aprendices o instructores asociados puede ocasionar errores de integridad referencial. Reasigne la EPS de los registros dependientes antes de proceder con la eliminación.
+</Warning>
+
+## Relaciones
+
+<AccordionGroup>
+  <Accordion title="Aprendices (hasMany)">
+    Aunque la relación `hasMany` no está declarada explícitamente en el modelo `eps`, la tabla de aprendices (`tblaprendices`) contiene una clave foránea hacia `tbleps.Nis`. Cada EPS puede estar asociada a múltiples aprendices.
+  </Accordion>
+  <Accordion title="Instructores (hasMany)">
+    De forma análoga, la tabla de instructores también referencia `tbleps.Nis` para almacenar la entidad de salud del instructor. Una misma EPS puede agrupar a varios instructores.
+  </Accordion>
+</AccordionGroup>
+
+## Módulos relacionados
+
+<CardGroup cols={2}>
+  <Card title="Aprendices" icon="user-graduate" href="/features/aprendices">
+    La EPS se selecciona obligatoriamente al registrar un aprendiz.
+  </Card>
+  <Card title="Instructores" icon="chalkboard-teacher" href="/features/instructores">
+    La EPS también se asocia al registrar instructores en el sistema.
+  </Card>
+</CardGroup>

@@ -1,0 +1,105 @@
+---
+title: "Instructores"
+description: "Registro y administración de instructores con roles administrativos"
+---
+
+El módulo de instructores permite gestionar el personal docente del SENA. Comparte la misma estructura CRUD que el módulo de aprendices, con la adición del campo **rol administrativo** que define la función que cumple el instructor dentro de la institución.
+
+## Rutas disponibles
+
+| Método | URI | Acción |
+|---|---|---|
+| GET | `/instructores` | Listado paginado con búsqueda |
+| GET | `/instructores/create` | Formulario de creación |
+| POST | `/instructores` | Guardar nuevo instructor |
+| GET | `/instructores/{Nis}` | Ver detalle del instructor |
+| GET | `/instructores/{Nis}/edit` | Formulario de edición |
+| PUT | `/instructores/{Nis}` | Actualizar instructor |
+| DELETE | `/instructores/{Nis}` | Eliminar instructor |
+
+## Campos del formulario
+
+| Campo | Columna en BD | Tipo | Requerido | Descripción |
+|---|---|---|---|---|
+| Tipo de documento | `tbltiposdocumentos_Nis` | FK → `tbltiposdocumentos` | Sí | Tipo de identificación del instructor |
+| Número de documento | `NumDoc` | string | Sí | Número de la identificación |
+| Nombres | `Nombres` | string | Sí | Nombres del instructor |
+| Apellidos | `Apellidos` | string | Sí | Apellidos del instructor |
+| Dirección | `Direccion` | string | Sí | Dirección de residencia |
+| Teléfono | `Telefono` | string | Sí | Número de contacto |
+| Correo institucional | `CorreoInstitucional` | string/email | Sí | Correo SENA del instructor |
+| Correo personal | `CorreoPersonal` | string/email | Sí | Correo personal del instructor |
+| Sexo | `Sexo` | integer | Sí | `1` = Masculino, `2` = Femenino |
+| Fecha de nacimiento | `FechaNac` | date | Sí | Fecha de nacimiento |
+| EPS | `tbleps_Nis` | FK → `tbleps` | Sí | Entidad promotora de salud |
+| Rol administrativo | `tblrolesadministrativos_Nis` | FK → `tblrolesadministrativos` | Sí | Función administrativa del instructor |
+
+## Reglas de validación
+
+```php
+// app/Http/Controllers/instructoresController.php — método store()
+$request->validate([
+    'tbltiposdocumentos_Nis'      => 'required|exists:tbltiposdocumentos,Nis',
+    'NumDoc'                      => 'required',
+    'Nombres'                     => 'required',
+    'Apellidos'                   => 'required',
+    'Direccion'                   => 'required',
+    'Telefono'                    => 'required',
+    'CorreoInstitucional'         => 'required',
+    'CorreoPersonal'              => 'required',
+    'Sexo'                        => 'required',
+    'FechaNac'                    => 'required',
+    'tbleps_Nis'                  => 'required|exists:tbleps,Nis',
+    'tblrolesadministrativos_Nis' => 'required|exists:tblrolesadministrativos,Nis'
+]);
+```
+
+## Modelo
+
+El modelo `instructores` usa la tabla `tblinstructores` con la llave primaria `Nis`:
+
+```php
+// app/Models/instructores.php
+protected $fillable = [
+    'tbltiposdocumentos_Nis', 'NumDoc', 'Nombres', 'Apellidos',
+    'Direccion', 'Telefono', 'CorreoInstitucional', 'CorreoPersonal',
+    'Sexo', 'FechaNac', 'tbleps_Nis', 'tblrolesadministrativos_Nis'
+];
+```
+
+Al igual que en el módulo de aprendices, el modelo incluye un accessor para mostrar el sexo como texto legible (`Masculino` / `Femenino` / `No definido`).
+
+## Relaciones del modelo
+
+| Relación | Tipo | Modelo relacionado | Clave foránea |
+|---|---|---|---|
+| `tipodocumento` | `belongsTo` | `TiposDocumentos` | `tbltiposdocumentos_Nis` |
+| `eps` | `belongsTo` | `Eps` | `tbleps_Nis` |
+| `rolesadministrativos` | `belongsTo` | `RolesAdministrativos` | `tblrolesadministrativos_Nis` |
+
+El listado carga las tres relaciones de forma anticipada (`with`):
+
+```php
+// app/Http/Controllers/instructoresController.php — método index()
+$instructores = instructores::with(['tipodocumento', 'eps', 'rolesadministrativos'])
+    ->when($buscar, function ($query, $buscar) {
+        $query->where('NumDoc', 'like', "%$buscar%")
+              ->orWhere('Nombres', 'like', "%$buscar%")
+              ->orWhere('Apellidos', 'like', "%$buscar%")
+              ->orWhere('tblrolesadministrativos_Nis', 'like', "%$buscar%");
+    })
+    ->paginate(10)
+    ->withQueryString();
+```
+
+## Búsqueda
+
+El listado acepta el parámetro `buscar` por query string. La búsqueda filtra por `NumDoc`, `Nombres`, `Apellidos` y `tblrolesadministrativos_Nis`.
+
+## Mensajes de respuesta
+
+| Operación | Clave de sesión | Mensaje |
+|---|---|---|
+| Registro creado | `registrar` | Instructor registrado correctamente |
+| Registro actualizado | `actualizar` | Instructor actualizado correctamente |
+| Registro eliminado | `eliminar` | Instructor eliminado correctamente |

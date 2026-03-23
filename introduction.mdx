@@ -1,0 +1,88 @@
+---
+title: "Introducción"
+description: "APPSeguimiento — Sistema de seguimiento para aprendices SENA basado en Laravel"
+---
+
+**APPSeguimiento** es una aplicación web desarrollada con **Laravel 12** para gestionar el seguimiento académico y administrativo de aprendices, instructores, fichas de caracterización y bitácoras en el contexto del **SENA** (Servicio Nacional de Aprendizaje de Colombia).
+
+El sistema centraliza la información de formación profesional en una sola plataforma, eliminando el uso de hojas de cálculo dispersas y permitiendo trazabilidad completa de los registros mediante notificaciones automáticas por correo electrónico.
+
+## ¿Para quién es APPSeguimiento?
+
+<CardGroup cols={3}>
+  <Card title="Instructores" icon="chalkboard-teacher">
+    Registra y consulta aprendices asignados a tus fichas de caracterización. Carga bitácoras en PDF y lleva el historial de actividades.
+  </Card>
+  <Card title="Coordinadores" icon="clipboard-list">
+    Supervisa programas de formación, centros de formación y la asignación de fichas. Recibe notificaciones automáticas de cambios en registros.
+  </Card>
+  <Card title="Administradores" icon="user-shield">
+    Gestiona usuarios, roles administrativos, tipos de documentos, EPS y entes coformadores. Controla el acceso al sistema.
+  </Card>
+</CardGroup>
+
+## Capacidades principales
+
+<CardGroup cols={2}>
+  <Card title="Gestión de aprendices" icon="user-graduate" href="/features/aprendices">
+    Registra aprendices con datos personales completos: número de documento, tipo de documento, EPS, correo institucional y personal, sexo y fecha de nacimiento.
+  </Card>
+  <Card title="Fichas de caracterización" icon="file-lines" href="/features/fichas-de-caracterizacion">
+    Crea y administra fichas vinculadas a programas y centros de formación, con cupos, fechas de inicio y fin, y observaciones.
+  </Card>
+  <Card title="Bitácoras" icon="folder-open" href="/features/bitacoras">
+    Sube bitácoras en formato PDF asociadas a usuarios. El sistema almacena el nombre del archivo, la ruta y el estado de cada documento.
+  </Card>
+  <Card title="Notificaciones por correo" icon="envelope" href="/setup/configuration">
+    El sistema envía alertas automáticas al correo configurado cada vez que se crea, actualiza o elimina un registro de aprendiz.
+  </Card>
+  <Card title="Instructores y roles" icon="id-badge" href="/features/instructores">
+    Registra instructores con sus roles administrativos asignados y sus datos de contacto institucional.
+  </Card>
+  <Card title="Catálogos administrativos" icon="list-check" href="/features/programas-de-formacion">
+    Administra programas de formación, centros de formación, regionales, EPS, entes coformadores y tipos de documentos.
+  </Card>
+</CardGroup>
+
+## Pila tecnológica
+
+| Componente | Tecnología | Versión |
+|---|---|---|
+| Framework backend | Laravel | 12.x |
+| Lenguaje | PHP | 8.2+ |
+| Base de datos | SQLite (desarrollo) / MySQL / PostgreSQL | — |
+| Plantillas frontend | Blade Templates | — |
+| Compilador de activos | Vite | 7.x |
+| CSS | Tailwind CSS | 4.x |
+| Autenticación | Laravel Auth (sesiones) | — |
+| Almacenamiento de archivos | Laravel Storage (disco público) | — |
+| Correo electrónico | Laravel Mail (SMTP configurable) | — |
+| Cola de trabajos | Laravel Queue (driver database) | — |
+| Testing | PHPUnit | 11.x |
+| Inspector de logs | Laravel Pail | 1.2+ |
+
+<Note>
+  APPSeguimiento utiliza **SQLite** como base de datos predeterminada para facilitar la instalación en entornos de desarrollo. Para producción se recomienda cambiar a **MySQL** o **PostgreSQL**. Consulta la [configuración de base de datos](/setup/database) para más detalles.
+</Note>
+
+## Estructura del proyecto
+
+El proyecto sigue la arquitectura estándar de Laravel con controladores MVC, modelos Eloquent y vistas Blade. Los módulos principales se organizan así:
+
+- `app/Http/Controllers/` — Controladores para cada módulo (aprendices, instructores, bitácoras, fichas, etc.)
+- `app/Models/` — Modelos Eloquent con relaciones entre tablas
+- `app/Mail/` — Clase `AprendizMail` para el envío de notificaciones
+- `resources/views/` — Plantillas Blade para la interfaz de usuario
+- `database/migrations/` — Migraciones de base de datos
+- `routes/web.php` — Definición de rutas de la aplicación
+
+## Comenzar ahora
+
+<CardGroup cols={2}>
+  <Card title="Inicio rápido" icon="rocket" href="/quickstart">
+    Despliega APPSeguimiento y registra tu primer aprendiz en minutos.
+  </Card>
+  <Card title="Instalación" icon="wrench" href="/setup/installation">
+    Guía completa de requisitos del sistema e instalación paso a paso.
+  </Card>
+</CardGroup>

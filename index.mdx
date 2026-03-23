@@ -1,97 +1,89 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "APPSeguimiento"
+description: "Sistema de gestión y seguimiento para aprendices, instructores y programas de formación del SENA"
 ---
 
-## Setting up
-
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Inicio rápido" icon="rocket" href="/quickstart">
+    Despliega APPSeguimiento en minutos y comienza a gestionar registros del SENA.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Instalación" icon="wrench" href="/setup/installation">
+    Guía completa de instalación con PHP, Composer y Laravel.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Aprendices" icon="graduation-cap" href="/features/aprendices">
+    Registra, busca y administra los aprendices vinculados a tus fichas.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Bitácoras" icon="book" href="/features/bitacoras">
+    Sube y organiza bitácoras en formato PDF con trazabilidad por usuario.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## ¿Qué es APPSeguimiento?
 
-Everything you need to create world-class documentation.
+**APPSeguimiento** es una aplicación web desarrollada con **Laravel 12** para gestionar el seguimiento de aprendices, instructores, fichas de caracterización y bitácoras en el contexto del SENA (Servicio Nacional de Aprendizaje de Colombia).
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+El sistema centraliza la información de formación profesional, permitiendo a instructores y coordinadores registrar y consultar datos de aprendices, asignar fichas de caracterización a programas y centros de formación, y llevar un registro documental de bitácoras en PDF.
 
-## Need inspiration?
+## Módulos principales
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<CardGroup cols={3}>
+  <Card title="Aprendices" icon="user-graduate" href="/features/aprendices">
+    Gestión completa de aprendices con datos personales, tipo de documento y EPS.
+  </Card>
+  <Card title="Instructores" icon="chalkboard-teacher" href="/features/instructores">
+    Registro de instructores con roles administrativos asignados.
+  </Card>
+  <Card title="Fichas de Caracterización" icon="file-lines" href="/features/fichas-de-caracterizacion">
+    Fichas vinculadas a programas y centros de formación con cupos y fechas.
+  </Card>
+  <Card title="Bitácoras" icon="folder-open" href="/features/bitacoras">
+    Carga y seguimiento de bitácoras PDF con estado y autoría.
+  </Card>
+  <Card title="Programas de Formación" icon="list-check" href="/features/programas-de-formacion">
+    Catálogo de programas de formación del SENA.
+  </Card>
+  <Card title="Centros de Formación" icon="building" href="/features/centros-de-formacion">
+    Administración de centros de formación por regional.
+  </Card>
+</CardGroup>
+
+## Características clave
+
+- **Autenticación segura** — Login con correo y contraseña, sesiones protegidas con middleware `auth`
+- **Búsqueda paginada** — Filtrado en tiempo real por nombre, número de documento y código en todos los módulos principales
+- **Notificaciones por correo** — Alertas automáticas al crear, actualizar o eliminar registros de aprendices
+- **Carga de archivos** — Bitácoras en PDF almacenadas en el sistema de archivos con rutas persistentes
+- **CRUD completo** — Crear, leer, actualizar y eliminar en todos los módulos con validaciones del lado servidor
+
+## Tecnologías utilizadas
+
+| Componente | Tecnología |
+|---|---|
+| Framework | Laravel 12 (PHP 8.2+) |
+| Base de datos | SQLite (configurable a MySQL/PostgreSQL) |
+| Frontend | Blade Templates + Vite |
+| Autenticación | Laravel Auth (sesiones) |
+| Almacenamiento | Laravel Storage (disco público) |
+| Correo | Laravel Mail (configurable) |
+| Testing | PHPUnit 11 |
+
+## Empezar
+
+<Steps>
+  <Step title="Instala las dependencias">
+    Clona el repositorio y ejecuta `composer install` seguido de `npm install`.
+  </Step>
+  <Step title="Configura el entorno">
+    Copia `.env.example` a `.env` y genera la clave de aplicación con `php artisan key:generate`.
+  </Step>
+  <Step title="Ejecuta las migraciones">
+    Crea la base de datos y las tablas con `php artisan migrate`.
+  </Step>
+  <Step title="Inicia el servidor">
+    Levanta el servidor de desarrollo con `php artisan serve` y accede en `http://localhost:8000`.
+  </Step>
+</Steps>
+
+<Note>
+  Consulta la [guía de instalación completa](/setup/installation) para configurar el entorno de producción y las variables de correo electrónico.
+</Note>

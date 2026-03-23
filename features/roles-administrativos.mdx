@@ -1,0 +1,79 @@
+---
+title: "Roles Administrativos"
+description: "Catálogo de roles institucionales que se asignan a los instructores del SENA."
+---
+
+Los **roles administrativos** definen las funciones institucionales que puede desempeñar un instructor dentro del SENA (por ejemplo: *Instructor*, *Coordinador Académico*, *Líder de Proyecto*, entre otros). Este catálogo se utiliza al momento de registrar instructores para indicar el cargo o rol que ocupa cada uno.
+
+<Tip>
+  Configure los roles administrativos **antes** de registrar instructores. El formulario de registro de instructores requiere seleccionar un rol válido del sistema, por lo que es recomendable tener este catálogo completo desde el inicio.
+</Tip>
+
+## Rutas disponibles
+
+El módulo expone un recurso REST completo bajo el prefijo `/rolesadministrativos`:
+
+| Método | URL | Acción |
+|--------|-----|--------|
+| `GET` | `/rolesadministrativos` | Listado de todos los roles |
+| `GET` | `/rolesadministrativos/create` | Formulario de creación |
+| `POST` | `/rolesadministrativos` | Guardar nuevo rol |
+| `GET` | `/rolesadministrativos/{Nis}` | Ver detalle del rol |
+| `GET` | `/rolesadministrativos/{Nis}/edit` | Formulario de edición |
+| `PUT/PATCH` | `/rolesadministrativos/{Nis}` | Actualizar rol |
+| `DELETE` | `/rolesadministrativos/{Nis}` | Eliminar rol |
+
+<Info>
+  A diferencia de otros módulos de administración, el listado de roles administrativos no implementa búsqueda ni paginación: se recuperan todos los registros directamente desde la tabla `tblrolesadministrativos` mediante una consulta completa.
+</Info>
+
+## Campos del modelo
+
+Tabla en base de datos: `tblrolesadministrativos`  
+Llave primaria: `Nis` (autoincremental)
+
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| `Descripcion` | string | Sí | Nombre o descripción del rol administrativo |
+
+## Flujo de trabajo
+
+<Steps>
+  <Step title="Acceder al módulo">
+    En el menú de administración, seleccione **Roles Administrativos**. Se mostrará el listado completo de roles registrados.
+  </Step>
+
+  <Step title="Crear un rol">
+    Haga clic en **Nuevo Rol** e ingrese la **Descripcion** del rol (campo obligatorio). Ejemplos de valores típicos: *Instructor*, *Coordinador Académico*, *Líder de Bienestar*.
+
+    Presione **Guardar**. El sistema redirige al mismo formulario con el mensaje *"Rol registrado correctamente"*.
+  </Step>
+
+  <Step title="Editar un rol">
+    Desde el listado, use el botón **Editar** para modificar la descripción de un rol existente. Al guardar, el sistema redirige al listado con el mensaje *"Rol actualizado correctamente"*.
+  </Step>
+
+  <Step title="Eliminar un rol">
+    Haga clic en **Eliminar** en el registro correspondiente. Verifique que ningún instructor esté asignado a ese rol antes de eliminarlo para evitar inconsistencias.
+  </Step>
+</Steps>
+
+<Warning>
+  Eliminar un rol que esté asignado a uno o más instructores puede generar errores de integridad referencial en la base de datos. Reasigne el rol de los instructores afectados antes de proceder.
+</Warning>
+
+## Relaciones
+
+<AccordionGroup>
+  <Accordion title="Instructores (hasMany)">
+    Aunque la relación `hasMany` no está definida explícitamente en el modelo `rolesadministrativos`, la tabla de instructores (`tblinstructores`) contiene una clave foránea hacia `tblrolesadministrativos.Nis`. Esto permite que varios instructores compartan un mismo rol administrativo.
+  </Accordion>
+</AccordionGroup>
+
+## Módulos relacionados
+
+<CardGroup cols={2}>
+  <Card title="Instructores" icon="chalkboard-teacher" href="/features/instructores">
+    Los instructores se registran con un rol administrativo asignado.
+  </Card>
+</CardGroup>

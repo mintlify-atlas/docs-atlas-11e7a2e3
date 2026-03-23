@@ -1,0 +1,375 @@
+---
+title: "Modelos de Datos"
+description: "Referencia de modelos Eloquent, tablas de base de datos y relaciones en APPSeguimiento"
+---
+
+Todos los modelos de APPSeguimiento extienden `Illuminate\Database\Eloquent\Model` y usan `Nis` como clave primaria (en lugar del estándar `id`).
+
+<Note>
+La clave primaria en todos los modelos es `Nis` (Número de Identificación del Sistema), un entero autoincremental.
+</Note>
+
+<AccordionGroup>
+
+<Accordion title="aprendices — tblaprendices">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tblaprendices` |
+| Clave primaria | `Nis` |
+| Timestamps | No |
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `tbltiposdocumentos_Nis` | FK → tiposdocumentos |
+| `NumDoc` | Número de documento |
+| `Nombres` | Nombres del aprendiz |
+| `Apellidos` | Apellidos del aprendiz |
+| `Direccion` | Dirección de residencia |
+| `Telefono` | Teléfono de contacto |
+| `CorreoInstitucional` | Correo institucional SENA |
+| `CorreoPersonal` | Correo personal |
+| `Sexo` | 1 = Masculino, 2 = Femenino |
+| `FechaNac` | Fecha de nacimiento |
+| `tbleps_Nis` | FK → eps |
+
+**Relaciones:**
+
+```php
+public function tipodocumento()
+{
+    return $this->belongsTo(TiposDocumentos::class, 'tbltiposdocumentos_Nis', 'Nis');
+}
+
+public function eps()
+{
+    return $this->belongsTo(Eps::class, 'tbleps_Nis', 'Nis');
+}
+```
+
+**Accessor:**
+
+```php
+public function getSexoTextoAttribute()
+{
+    return match ($this->Sexo) {
+        1 => 'Masculino',
+        2 => 'Femenino',
+        default => 'No definido'
+    };
+}
+```
+
+Accede al valor legible con `$aprendiz->sexo_texto`.
+
+</Accordion>
+
+<Accordion title="instructores — tblinstructores">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tblinstructores` |
+| Clave primaria | `Nis` |
+| Timestamps | No |
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `tbltiposdocumentos_Nis` | FK → tiposdocumentos |
+| `NumDoc` | Número de documento |
+| `Nombres` | Nombres del instructor |
+| `Apellidos` | Apellidos del instructor |
+| `Direccion` | Dirección de residencia |
+| `Telefono` | Teléfono de contacto |
+| `CorreoInstitucional` | Correo institucional |
+| `CorreoPersonal` | Correo personal |
+| `Sexo` | 1 = Masculino, 2 = Femenino |
+| `FechaNac` | Fecha de nacimiento |
+| `tbleps_Nis` | FK → eps |
+| `tblrolesadministrativos_Nis` | FK → rolesadministrativos |
+
+**Relaciones:**
+
+```php
+public function tipodocumento()
+{
+    return $this->belongsTo(TiposDocumentos::class, 'tbltiposdocumentos_Nis', 'Nis');
+}
+
+public function eps()
+{
+    return $this->belongsTo(Eps::class, 'tbleps_Nis', 'Nis');
+}
+
+public function rolesadministrativos()
+{
+    return $this->belongsTo(RolesAdministrativos::class, 'tblrolesadministrativos_Nis', 'Nis');
+}
+```
+
+</Accordion>
+
+<Accordion title="fichadecaracterizacion — tblfichasdecaracterizacion">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tblfichasdecaracterizacion` |
+| Clave primaria | `Nis` |
+| Timestamps | No |
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `Codigo` | Código único de la ficha |
+| `Denominacion` | Nombre descriptivo |
+| `Cupo` | Capacidad máxima de aprendices |
+| `FechaInicio` | Fecha de inicio del programa |
+| `FechaFin` | Fecha de finalización |
+| `Observaciones` | Notas adicionales (opcional) |
+| `tblprogramasdeformacion_Nis` | FK → programasdeformacion |
+| `tblcentrosdeformacion_Nis` | FK → centrosdeformacion |
+
+**Relaciones:**
+
+```php
+public function programasdeformacion()
+{
+    return $this->belongsTo(programasdeformacion::class, 'tblprogramasdeformacion_Nis', 'Nis');
+}
+
+public function centrosdeformacion()
+{
+    return $this->belongsTo(centrosdeformacion::class, 'tblcentrosdeformacion_Nis', 'Nis');
+}
+```
+
+</Accordion>
+
+<Accordion title="bitacoras — tblbitacoras">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tblbitacoras` |
+| Clave primaria | `Nis` |
+| Timestamps | Sí (`created_at`, `updated_at`) |
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `NomArchivo` | Nombre del archivo (max 45 chars) |
+| `Ruta` | Ruta del archivo en storage |
+| `Estado` | Estado de la bitácora (ej. `'Creada'`) |
+| `tblusuarios_Nis` | FK → tblusuarios (usuario que subió el archivo) |
+
+**Relaciones:**
+
+```php
+public function usuarios()
+{
+    return $this->belongsTo(User::class, 'tblusuarios_Nis', 'Nis');
+}
+```
+
+</Accordion>
+
+<Accordion title="programasdeformacion — tblprogramasdeformacion">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tblprogramasdeformacion` |
+| Clave primaria | `Nis` |
+| Timestamps | No |
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `Codigo` | Código del programa |
+| `Denominacion` | Nombre del programa |
+| `Observaciones` | Notas adicionales |
+
+</Accordion>
+
+<Accordion title="centrosdeformacion — tblcentrosdeformacion">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tblcentrosdeformacion` |
+| Clave primaria | `Nis` |
+| Timestamps | No |
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `Codigo` | Código del centro |
+| `Denominacion` | Nombre del centro |
+| `Direccion` | Dirección física |
+| `Observaciones` | Notas adicionales |
+| `tblregionales_Nis` | FK → regionales |
+
+**Relaciones:**
+
+```php
+public function regionales()
+{
+    return $this->belongsTo(Regionales::class, 'tblregionales_Nis', 'Nis');
+}
+```
+
+</Accordion>
+
+<Accordion title="regionales — tblregionales">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tblregionales` |
+| Clave primaria | `Nis` |
+| Timestamps | No |
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `Codigo` | Código de la regional |
+| `Denominacion` | Nombre de la regional |
+| `Observaciones` | Notas adicionales |
+
+</Accordion>
+
+<Accordion title="entecoformador — tblentecoformador">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tblentecoformador` |
+| Clave primaria | `Nis` |
+| Timestamps | No |
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `tbltiposdocumentos_Nis` | FK → tiposdocumentos |
+| `NumDoc` | Número de documento de la entidad |
+| `RazonSocial` | Razón social de la empresa |
+| `Direccion` | Dirección |
+| `Telefono` | Teléfono |
+| `CorreoInstitucional` | Correo institucional |
+
+**Relaciones:**
+
+```php
+public function tiposdocumentos()
+{
+    return $this->belongsTo(tiposdocumentos::class, 'tbltiposdocumentos_Nis', 'Nis');
+}
+```
+
+</Accordion>
+
+<Accordion title="eps — tbleps">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tbleps` |
+| Clave primaria | `Nis` |
+| Timestamps | No |
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `Numdoc` | NIT o documento de la EPS |
+| `Denominacion` | Nombre de la EPS |
+| `Observaciones` | Notas adicionales |
+
+</Accordion>
+
+<Accordion title="rolesadministrativos — tblrolesadministrativos">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tblrolesadministrativos` |
+| Clave primaria | `Nis` |
+| Timestamps | No |
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `Descripcion` | Nombre del rol (ej. Coordinador, Instructor) |
+
+</Accordion>
+
+<Accordion title="tiposdocumentos — tbltiposdocumentos">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tbltiposdocumentos` |
+| Clave primaria | `Nis` |
+| Timestamps | No |
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `Denominacion` | Nombre del tipo (ej. Cédula de Ciudadanía) |
+| `Observaciones` | Notas adicionales |
+
+</Accordion>
+
+<Accordion title="User — tblusuarios">
+
+| Propiedad | Valor |
+|-----------|-------|
+| Tabla | `tblusuarios` |
+| Clave primaria | `Nis` |
+| Timestamps | No |
+
+Extiende `Illuminate\Foundation\Auth\User as Authenticatable`.
+
+**Campos fillable:**
+
+| Campo | Descripción |
+|-------|-------------|
+| `Nis` | Identificador único |
+| `Correo` | Dirección de correo (única) |
+| `Contrasena` | Contraseña hasheada (hidden en serialización) |
+
+**Métodos personalizados:**
+
+```php
+public function getAuthPassword()
+{
+    return $this->Contrasena;
+}
+```
+
+Sobrescribe el método estándar de Laravel para usar el campo `Contrasena` en lugar de `password`.
+
+</Accordion>
+
+</AccordionGroup>
+
+## Diagrama de relaciones
+
+```
+tblusuarios ──────────────────────────────── tblbitacoras
+                                                  │
+tblaprendices ──────┬──── tbltiposdocumentos      │
+tblinstructores ────┤                             │
+tblentecoformador ──┘
+
+tblaprendices ──────┬──── tbleps
+tblinstructores ────┘
+
+tblinstructores ─────────── tblrolesadministrativos
+
+tblfichasdecaracterizacion ─┬── tblprogramasdeformacion
+                             └── tblcentrosdeformacion ─── tblregionales
+```

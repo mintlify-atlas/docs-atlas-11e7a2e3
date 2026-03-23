@@ -1,0 +1,99 @@
+---
+title: "Autenticación"
+description: "Inicio de sesión, registro de usuarios y control de acceso en APPSeguimiento"
+---
+
+APPSeguimiento utiliza el sistema de autenticación de Laravel con sesiones PHP. Todas las rutas protegidas requieren que el usuario haya iniciado sesión antes de acceder.
+
+## Flujo de inicio de sesión
+
+<Steps>
+  <Step title="Acceder al formulario">
+    El usuario navega a `GET /login`. Se muestra la vista `login` con los campos de correo y contraseña.
+  </Step>
+  <Step title="Enviar credenciales">
+    El formulario hace `POST /login`. El controlador valida los campos y busca al usuario por `Correo` en la tabla `tblusuarios`.
+  </Step>
+  <Step title="Verificar contraseña">
+    Se compara la contraseña enviada con el hash almacenado usando `Hash::check()`. Si coinciden, se inicia la sesión con `Auth::login($usuario)`.
+  </Step>
+  <Step title="Redirección">
+    Si las credenciales son correctas, el usuario es redirigido a la ruta `welcome`. Si fallan, se regresa al formulario con el error **'Credenciales incorrectas'**.
+  </Step>
+</Steps>
+
+## Campos del formulario de login
+
+| Campo | Tipo | Validación | Descripción |
+|---|---|---|---|
+| `Correo` | `email` | `required\|email` | Correo electrónico del usuario |
+| `Contrasena` | `password` | `required` | Contraseña del usuario |
+
+## Reglas de validación del controlador
+
+```php
+// app/Http/Controllers/loginController.php
+$request->validate([
+    'Correo'     => 'required|email',
+    'Contrasena' => 'required'
+]);
+```
+
+Si las credenciales no coinciden, Laravel regresa al formulario preservando la entrada y adjuntando el error de validación:
+
+```php
+return back()->withErrors([
+    'Correo' => 'Credenciales incorrectas'
+])->withInput();
+```
+
+## Cierre de sesión
+
+El cierre de sesión se hace mediante `POST /logout`. El controlador llama a `Auth::logout()` y redirige al usuario a la ruta `login`.
+
+```php
+public function logout()
+{
+    Auth::logout();
+    return redirect()->route('login');
+}
+```
+
+## Registro de usuarios
+
+La ruta `GET /usuarios/create` muestra el formulario de registro. Al enviar `POST /usuarios`, se crean las credenciales con la siguiente validación:
+
+```php
+// app/Http/Controllers/loginController.php — método store()
+$request->validate([
+    'Correo'     => 'required|email|unique:tblusuarios,Correo',
+    'Contrasena' => 'required|min:6'
+]);
+
+User::create([
+    'Correo'     => $request->Correo,
+    'Contrasena' => Hash::make($request->Contrasena)
+]);
+```
+
+La contraseña se almacena como hash con `Hash::make()`. Tras el registro exitoso se redirige al login con el mensaje **'Usuario creado correctamente'**.
+
+<Warning>
+  La ruta `/usuarios/create` **no está protegida por autenticación**. Cualquier persona con acceso a la URL puede crear un usuario nuevo sin necesidad de iniciar sesión. En un entorno de producción, esta ruta debe protegerse con `middleware('auth')` o eliminarse si el registro debe ser gestionado por administradores.
+</Warning>
+
+## Protección de rutas
+
+Todas las rutas del sistema, a excepción de `/login`, `/logout` y `/usuarios/create`, están protegidas con el middleware `auth` de Laravel:
+
+```php
+// routes/web.php
+Route::middleware('auth')->group(function () {
+    Route::resource('/aprendices', aprendicesController::class);
+    Route::resource('/instructores', instructoresController::class);
+    Route::resource('/bitacoras', bitacorasController::class);
+    // ... demás recursos
+});
+```
+
+Si un usuario no autenticado intenta acceder a cualquier ruta del grupo protegido, Laravel lo redirige automáticamente a `/login`.

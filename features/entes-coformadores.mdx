@@ -1,0 +1,112 @@
+---
+title: "Entes Coformadores"
+description: "Registro de empresas y organizaciones donde los aprendices realizan su etapa productiva."
+---
+
+Los **entes coformadores** son las empresas, entidades públicas u organizaciones privadas que suscriben convenios con el SENA para recibir aprendices durante su etapa práctica (etapa productiva). Cada ente coformador queda registrado en el sistema con su información de contacto y el tipo de documento de identidad con que se identifica.
+
+<Note>
+  Para registrar un ente coformador es necesario que existan **Tipos de Documentos** configurados en el sistema, ya que el formulario solicita seleccionar el tipo de documento de la entidad.
+</Note>
+
+## Rutas disponibles
+
+El módulo expone un recurso REST completo bajo el prefijo `/entecoformador`:
+
+| Método | URL | Acción |
+|--------|-----|--------|
+| `GET` | `/entecoformador` | Listado con búsqueda y paginación |
+| `GET` | `/entecoformador/create` | Formulario de creación |
+| `POST` | `/entecoformador` | Guardar nuevo ente coformador |
+| `GET` | `/entecoformador/{Nis}` | Ver detalle |
+| `GET` | `/entecoformador/{Nis}/edit` | Formulario de edición |
+| `PUT/PATCH` | `/entecoformador/{Nis}` | Actualizar ente coformador |
+| `DELETE` | `/entecoformador/{Nis}` | Eliminar ente coformador |
+
+## Campos del modelo
+
+Tabla en base de datos: `tblentecoformador`  
+Llave primaria: `Nis` (autoincremental)
+
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| `tbltiposdocumentos_Nis` | integer (FK) | Sí | Referencia al tipo de documento del ente |
+| `NumDoc` | string | Sí | Número de documento de la entidad (NIT, CC, etc.) |
+| `RazonSocial` | string | Sí | Nombre o razón social del ente coformador |
+| `Direccion` | string | Sí | Dirección física de la entidad |
+| `Telefono` | string | Sí | Número de teléfono de contacto |
+| `CorreoInstitucional` | string | Sí | Correo electrónico institucional |
+
+## Búsqueda
+
+El listado admite un parámetro `buscar` que filtra simultáneamente por `NumDoc` y `RazonSocial`:
+
+```
+GET /entecoformador?buscar=empresa
+```
+
+Los resultados se paginan de 10 en 10 y el término se conserva al navegar entre páginas.
+
+## Flujo de trabajo
+
+<Steps>
+  <Step title="Verificar tipos de documentos">
+    Antes de registrar entes coformadores, confirme que el catálogo de [Tipos de Documentos](/features/tipos-de-documentos) esté configurado. El formulario requiere seleccionar un tipo de documento válido.
+  </Step>
+
+  <Step title="Acceder al módulo">
+    En el menú de administración, seleccione **Entes Coformadores**. Se mostrará el listado paginado de todas las entidades registradas, con su tipo de documento cargado mediante eager loading.
+  </Step>
+
+  <Step title="Crear un ente coformador">
+    Haga clic en **Nuevo Ente Coformador** y complete el formulario con todos los campos obligatorios:
+    - **Tipo de Documento** — seleccione de la lista de tipos disponibles.
+    - **NumDoc** — número de documento (p. ej. NIT) de la entidad.
+    - **RazonSocial** — nombre completo o razón social.
+    - **Direccion** — dirección de la sede.
+    - **Telefono** — teléfono de contacto.
+    - **CorreoInstitucional** — correo electrónico oficial.
+
+    Presione **Guardar**. El sistema redirige al mismo formulario con el mensaje *"Entecoformador registrado correctamente"*.
+  </Step>
+
+  <Step title="Consultar o editar">
+    Desde el listado use **Ver** para consultar el detalle o **Editar** para modificar la información. En la edición también se carga la lista de tipos de documentos para permitir cambiar la selección.
+  </Step>
+
+  <Step title="Eliminar un ente coformador">
+    Haga clic en **Eliminar** en el registro correspondiente. Verifique que no existan aprendices vinculados al ente antes de eliminarlo.
+  </Step>
+</Steps>
+
+<Warning>
+  Eliminar un ente coformador que tenga aprendices en etapa productiva asociados puede generar inconsistencias en los registros de seguimiento. Revise las vinculaciones activas antes de proceder.
+</Warning>
+
+## Relaciones
+
+<AccordionGroup>
+  <Accordion title="Tipos de Documentos (belongsTo)">
+    El ente coformador pertenece a un tipo de documento mediante la relación `belongsTo` definida en el modelo:
+
+    ```php
+    public function tiposdocumentos()
+    {
+        return $this->belongsTo(tiposdocumentos::class, 'tbltiposdocumentos_Nis', 'Nis');
+    }
+    ```
+
+    Esto permite mostrar la descripción del tipo de documento (p. ej. *NIT*, *Cédula de Ciudadanía*) en el listado y detalle del ente coformador sin consultas adicionales, gracias al eager loading aplicado en el controlador.
+  </Accordion>
+</AccordionGroup>
+
+## Módulos relacionados
+
+<CardGroup cols={2}>
+  <Card title="Tipos de Documentos" icon="id-card" href="/features/tipos-de-documentos">
+    Catálogo requerido para clasificar el documento del ente coformador.
+  </Card>
+  <Card title="Aprendices" icon="user-graduate" href="/features/aprendices">
+    Los aprendices se vinculan a entes coformadores durante la etapa productiva.
+  </Card>
+</CardGroup>

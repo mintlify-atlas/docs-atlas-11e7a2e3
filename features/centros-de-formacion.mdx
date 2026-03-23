@@ -1,0 +1,99 @@
+---
+title: "Centros de Formación"
+description: "Administración de centros de formación por regional"
+---
+
+Los **centros de formación** son las sedes físicas del SENA donde se ejecutan los programas educativos. Cada centro está adscrito a una **regional**, que representa la unidad administrativa territorial a la que pertenece. En APPSeguimiento, los centros de formación son referenciados por las fichas de caracterización.
+
+## Rutas disponibles
+
+| Método | URI | Acción |
+|---|---|---|
+| GET | `/centrosdeformacion` | Listado paginado con búsqueda |
+| GET | `/centrosdeformacion/create` | Formulario de creación |
+| POST | `/centrosdeformacion` | Guardar nuevo centro |
+| GET | `/centrosdeformacion/{Nis}` | Ver detalle del centro |
+| GET | `/centrosdeformacion/{Nis}/edit` | Formulario de edición |
+| PUT | `/centrosdeformacion/{Nis}` | Actualizar centro |
+| DELETE | `/centrosdeformacion/{Nis}` | Eliminar centro |
+
+## Campos del formulario
+
+| Campo | Columna en BD | Tipo | Requerido | Descripción |
+|---|---|---|---|---|
+| Código | `Codigo` | string | Sí | Código que identifica el centro |
+| Denominación | `Denominacion` | string | Sí | Nombre oficial del centro de formación |
+| Dirección | `Direccion` | string | Sí | Dirección física del centro |
+| Regional | `tblregionales_Nis` | FK → `tblregionales` | Sí | Regional a la que está adscrito el centro |
+| Observaciones | `Observaciones` | text | No | Notas adicionales sobre el centro |
+
+## Reglas de validación
+
+```php
+// app/Http/Controllers/centrosdeformacionController.php — método store()
+$request->validate([
+    'Codigo'            => 'required',
+    'Denominacion'      => 'required',
+    'Direccion'         => 'required',
+    'tblregionales_Nis' => 'required|exists:tblregionales,Nis',
+]);
+```
+
+## Modelo
+
+El modelo `centrosdeformacion` usa la tabla `tblcentrosdeformacion` con la llave primaria `Nis`. El modelo no tiene `timestamps`:
+
+```php
+// app/Models/centrosdeformacion.php
+protected $table    = 'tblcentrosdeformacion';
+protected $fillable = [
+    'Codigo', 'Denominacion', 'Direccion', 'Observaciones', 'tblregionales_Nis'
+];
+public $timestamps = false;
+```
+
+## Relación con regionales
+
+Cada centro pertenece a una regional mediante una relación `belongsTo`:
+
+```php
+// app/Models/centrosdeformacion.php
+public function regionales()
+{
+    return $this->belongsTo(Regionales::class, 'tblregionales_Nis', 'Nis');
+}
+```
+
+El listado carga la relación de forma anticipada para mostrar el nombre de la regional junto a cada centro:
+
+```php
+// app/Http/Controllers/centrosdeformacionController.php — método index()
+$centrosdeformacion = centrosdeformacion::with(['regionales'])
+    ->when($buscar, function ($query, $buscar) {
+        $query->where('Codigo', 'like', "%$buscar%")
+              ->orWhere('Denominacion', 'like', "%$buscar%")
+              ->orWhere('tblregionales_Nis', 'like', "%$buscar%");
+    })
+    ->paginate(10)
+    ->withQueryString();
+```
+
+## Búsqueda
+
+El listado acepta el parámetro `buscar` por query string. La búsqueda filtra por `Codigo`, `Denominacion` o `tblregionales_Nis`.
+
+## Relación con fichas de caracterización
+
+Un centro de formación puede estar vinculado a múltiples fichas de caracterización. Desde el módulo de [Fichas de Caracterización](/features/fichas-de-caracterizacion), se selecciona el centro correspondiente mediante la clave foránea `tblcentrosdeformacion_Nis`.
+
+<Tip>
+  Antes de registrar fichas de caracterización, asegúrese de que el catálogo de centros de formación esté completo y que cada centro esté correctamente asignado a su regional. Las fichas requieren un centro válido existente en la base de datos.
+</Tip>
+
+## Mensajes de respuesta
+
+| Operación | Clave de sesión | Mensaje |
+|---|---|---|
+| Registro creado | `registrar` | Centro de formacion registrado correctamente |
+| Registro actualizado | `actualizar` | Centro de formacion actualizado correctamente |
+| Registro eliminado | `eliminar` | Centro de formacion eliminado correctamente |

@@ -1,0 +1,112 @@
+---
+title: "Rutas"
+description: "Referencia completa de rutas HTTP de APPSeguimiento"
+---
+
+## Rutas públicas
+
+Estas rutas no requieren autenticación y son accesibles para todos los visitantes.
+
+| Método | Ruta | Acción | Descripción |
+|--------|------|--------|-------------|
+| GET | `/` | `loginController@showLogin` | Redirige a la vista de login |
+| GET | `/login` | `loginController@showLogin` | Muestra el formulario de inicio de sesión |
+| POST | `/login` | `loginController@login` | Procesa las credenciales y crea la sesión |
+| POST | `/logout` | `loginController@logout` | Destruye la sesión y redirige al login |
+| GET | `/usuarios/create` | `loginController@create` | Muestra el formulario de registro de usuario |
+| POST | `/usuarios` | `loginController@store` | Crea un nuevo usuario en el sistema |
+| GET | `/clear` | Artisan `cache:clear` | Limpia la caché de la aplicación |
+
+<Warning>
+La ruta `GET /usuarios/create` es pública y no requiere autenticación. Cualquier visitante puede registrar un nuevo usuario. Se recomienda proteger esta ruta con middleware o eliminarla en entornos de producción.
+</Warning>
+
+---
+
+## Rutas protegidas
+
+Todas las rutas del grupo siguiente requieren autenticación (`middleware('auth')`). Si el usuario no tiene sesión activa, será redirigido a `/login`.
+
+### Dashboard
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/welcome` | Panel de bienvenida tras el login |
+
+### Aprendices — `/aprendices`
+
+| Método | Ruta | Acción | Descripción |
+|--------|------|--------|-------------|
+| GET | `/aprendices` | `index` | Lista paginada con búsqueda |
+| GET | `/aprendices/create` | `create` | Formulario de registro |
+| POST | `/aprendices` | `store` | Guarda un nuevo aprendiz |
+| GET | `/aprendices/{Nis}` | `show` | Detalle del aprendiz |
+| GET | `/aprendices/{Nis}/edit` | `edit` | Formulario de edición |
+| PUT/PATCH | `/aprendices/{Nis}` | `update` | Actualiza el aprendiz |
+| DELETE | `/aprendices/{Nis}` | `destroy` | Elimina el aprendiz |
+
+### Bitácoras — `/bitacoras`
+
+| Método | Ruta | Acción | Descripción |
+|--------|------|--------|-------------|
+| GET | `/bitacoras` | `index` | Lista paginada de bitácoras |
+| GET | `/bitacoras/create` | `create` | Formulario de carga de bitácora |
+| POST | `/bitacoras` | `store` | Sube un archivo PDF |
+| GET | `/bitacoras/{Nis}` | `show` | *(no implementado)* |
+| GET | `/bitacoras/{Nis}/edit` | `edit` | *(no implementado)* |
+| PUT/PATCH | `/bitacoras/{Nis}` | `update` | *(no implementado)* |
+| DELETE | `/bitacoras/{Nis}` | `destroy` | *(no implementado)* |
+
+### Fichas de Caracterización — `/fichasdecaracterizacion`
+
+| Método | Ruta | Acción | Descripción |
+|--------|------|--------|-------------|
+| GET | `/fichasdecaracterizacion` | `index` | Lista paginada con búsqueda |
+| GET | `/fichasdecaracterizacion/create` | `create` | Formulario de registro |
+| POST | `/fichasdecaracterizacion` | `store` | Guarda una nueva ficha |
+| GET | `/fichasdecaracterizacion/{Nis}` | `show` | Detalle de la ficha |
+| GET | `/fichasdecaracterizacion/{Nis}/edit` | `edit` | Formulario de edición |
+| PUT/PATCH | `/fichasdecaracterizacion/{Nis}` | `update` | Actualiza la ficha |
+| DELETE | `/fichasdecaracterizacion/{Nis}` | `destroy` | Elimina la ficha |
+
+### Instructores — `/instructores`
+
+| Método | Ruta | Acción | Descripción |
+|--------|------|--------|-------------|
+| GET | `/instructores` | `index` | Lista paginada con búsqueda |
+| GET | `/instructores/create` | `create` | Formulario de registro |
+| POST | `/instructores` | `store` | Guarda un nuevo instructor |
+| GET | `/instructores/{Nis}` | `show` | Detalle del instructor |
+| GET | `/instructores/{Nis}/edit` | `edit` | Formulario de edición |
+| PUT/PATCH | `/instructores/{Nis}` | `update` | Actualiza el instructor |
+| DELETE | `/instructores/{Nis}` | `destroy` | Elimina el instructor |
+
+### Catálogos de administración
+
+Los siguientes recursos siguen el mismo patrón de 7 rutas estándar de Laravel:
+
+| Recurso | Prefijo de ruta |
+|---------|----------------|
+| Programas de Formación | `/programas` |
+| Centros de Formación | `/centrosdeformacion` |
+| Regionales | `/regionales` |
+| Entes Coformadores | `/entecoformador` |
+| EPS | `/eps` |
+| Roles Administrativos | `/rolesadministrativos` |
+| Tipos de Documentos | `/tiposdocumentos` |
+
+Cada uno expone las siguientes rutas:
+
+| Método | Ruta | Acción |
+|--------|------|--------|
+| GET | `/{recurso}` | `index` |
+| GET | `/{recurso}/create` | `create` |
+| POST | `/{recurso}` | `store` |
+| GET | `/{recurso}/{Nis}` | `show` |
+| GET | `/{recurso}/{Nis}/edit` | `edit` |
+| PUT/PATCH | `/{recurso}/{Nis}` | `update` |
+| DELETE | `/{recurso}/{Nis}` | `destroy` |
+
+<Note>
+Todas las rutas de recursos usan `Nis` como identificador primario (no `id`), ya que los modelos tienen `protected $primaryKey = 'Nis'`.
+</Note>

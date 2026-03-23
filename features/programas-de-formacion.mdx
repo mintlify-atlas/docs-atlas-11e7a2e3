@@ -1,0 +1,86 @@
+---
+title: "Programas de Formación"
+description: "Catálogo de programas de formación del SENA"
+---
+
+Los **programas de formación** constituyen el catálogo oficial de ofertas educativas del SENA. Cada programa define un perfil de egresado y un conjunto de competencias. En APPSeguimiento, los programas sirven como referencia para vincular las fichas de caracterización que agrupan a los aprendices en cohortes.
+
+## Rutas disponibles
+
+| Método | URI | Acción |
+|---|---|---|
+| GET | `/programas` | Listado paginado con búsqueda |
+| GET | `/programas/create` | Formulario de creación |
+| POST | `/programas` | Guardar nuevo programa |
+| GET | `/programas/{Nis}` | Ver detalle del programa |
+| GET | `/programas/{Nis}/edit` | Formulario de edición |
+| PUT | `/programas/{Nis}` | Actualizar programa |
+| DELETE | `/programas/{Nis}` | Eliminar programa |
+
+<Note>
+  Las rutas de programas de formación usan el prefijo `/programas`, no `/programasdeformacion`.
+</Note>
+
+## Campos del formulario
+
+| Campo | Columna en BD | Tipo | Requerido | Descripción |
+|---|---|---|---|---|
+| Código | `Codigo` | string | Sí | Código único que identifica el programa |
+| Denominación | `Denominacion` | string | Sí | Nombre oficial del programa de formación |
+| Observaciones | `Observaciones` | text | No | Notas adicionales sobre el programa |
+
+## Reglas de validación
+
+```php
+// app/Http/Controllers/programasdeformacionController.php — método store()
+$request->validate([
+    'Codigo'       => 'required',
+    'Denominacion' => 'required'
+],
+[
+    'Codigo.required'       => 'El campo Codigo es obligatorio',
+    'Denominacion.required' => 'El campo Denominacion es obligatorio',
+]);
+```
+
+## Modelo
+
+El modelo `programasdeformacion` usa la tabla `tblprogramasdeformacion` con la llave primaria `Nis`. El modelo no tiene `timestamps`:
+
+```php
+// app/Models/programasdeformacion.php
+protected $table    = 'tblprogramasdeformacion';
+protected $fillable = ['Codigo', 'Denominacion', 'Observaciones'];
+public    $timestamps = false;
+```
+
+## Búsqueda
+
+El listado acepta el parámetro `buscar` por query string. La búsqueda filtra por `Codigo` o `Denominacion` usando `WHERE LIKE`:
+
+```php
+// app/Http/Controllers/programasdeformacionController.php — método index()
+$programasdeformacion = programasdeformacion::with([])
+    ->when($buscar, function ($query, $buscar) {
+        $query->where('Codigo', 'like', "%$buscar%")
+              ->orWhere('Denominacion', 'like', "%$buscar%");
+    })
+    ->paginate(10)
+    ->withQueryString();
+```
+
+## Relación con fichas de caracterización
+
+Cada programa puede estar vinculado a múltiples fichas de caracterización. Desde el módulo de [Fichas de Caracterización](/features/fichas-de-caracterizacion), se selecciona el programa correspondiente mediante la clave foránea `tblprogramasdeformacion_Nis`.
+
+<Tip>
+  Antes de registrar fichas de caracterización, asegúrese de que el catálogo de programas de formación esté completo y actualizado. Las fichas requieren un programa válido existente en la base de datos.
+</Tip>
+
+## Mensajes de respuesta
+
+| Operación | Clave de sesión | Mensaje |
+|---|---|---|
+| Registro creado | `registrar` | Programa registrado correctamente |
+| Registro actualizado | `actualizar` | Programa actualizada correctamente |
+| Registro eliminado | `eliminar` | Programa eliminado correctamente |

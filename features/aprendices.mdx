@@ -1,0 +1,120 @@
+---
+title: "Aprendices"
+description: "Gestión de aprendices: registro, búsqueda, edición y eliminación"
+---
+
+El módulo de aprendices permite registrar, consultar, actualizar y eliminar los aprendices del SENA. Cada registro vincula al aprendiz con su tipo de documento y su EPS.
+
+## Flujo de trabajo
+
+<Steps>
+  <Step title="Consultar el listado">
+    Navegar a `GET /aprendices`. Se muestra una tabla paginada con 10 registros por página. Es posible filtrar por número de documento, nombres o apellidos usando el campo de búsqueda.
+  </Step>
+  <Step title="Crear un aprendiz">
+    Ir a `GET /aprendices/create`. El formulario carga todos los tipos de documento y EPS disponibles. Completar todos los campos requeridos y enviar.
+  </Step>
+  <Step title="Guardar el registro">
+    El formulario hace `POST /aprendices`. El controlador valida los datos y llama a `aprendices::create($request->all())`. Tras guardarse, se dispara automáticamente una notificación por correo.
+  </Step>
+  <Step title="Ver detalle">
+    Navegar a `GET /aprendices/{Nis}`. Se muestra la información completa del aprendiz con las relaciones `tipodocumento` y `eps` cargadas.
+  </Step>
+  <Step title="Editar un aprendiz">
+    Ir a `GET /aprendices/{Nis}/edit`. El formulario pre-carga los datos actuales. Al enviar, se hace `PUT /aprendices/{Nis}` y el sistema redirige al listado con el mensaje **'Aprendiz actualizado correctamente'**.
+  </Step>
+  <Step title="Eliminar un aprendiz">
+    Desde el listado, enviar `DELETE /aprendices/{Nis}`. El sistema elimina el registro y redirige al listado con el mensaje **'Aprendiz eliminado correctamente'**. También se dispara una notificación por correo.
+  </Step>
+</Steps>
+
+## Campos del formulario
+
+| Campo | Columna en BD | Tipo | Descripción |
+|---|---|---|---|
+| Tipo de documento | `tbltiposdocumentos_Nis` | FK → `tbltiposdocumentos` | Tipo de identificación del aprendiz |
+| Número de documento | `NumDoc` | string | Número de la identificación |
+| Nombres | `Nombres` | string | Nombres del aprendiz |
+| Apellidos | `Apellidos` | string | Apellidos del aprendiz |
+| Dirección | `Direccion` | string | Dirección de residencia |
+| Teléfono | `Telefono` | string | Número de contacto |
+| Correo institucional | `CorreoInstitucional` | string/email | Correo SENA del aprendiz |
+| Correo personal | `CorreoPersonal` | string/email | Correo personal del aprendiz |
+| Sexo | `Sexo` | integer | `1` = Masculino, `2` = Femenino |
+| Fecha de nacimiento | `FechaNac` | date | Fecha de nacimiento |
+| EPS | `tbleps_Nis` | FK → `tbleps` | Entidad promotora de salud |
+
+Todos los campos son **requeridos**.
+
+## Atributos del modelo
+
+El modelo `aprendices` usa la tabla `tblaprendices` con la llave primaria `Nis`. El array `$fillable` define los campos que se pueden asignar en masa:
+
+```php
+// app/Models/aprendices.php
+protected $fillable = [
+    'tbltiposdocumentos_Nis', 'NumDoc', 'Nombres', 'Apellidos',
+    'Direccion', 'Telefono', 'CorreoInstitucional', 'CorreoPersonal',
+    'Sexo', 'FechaNac', 'tbleps_Nis'
+];
+```
+
+El modelo incluye un accessor para mostrar el sexo como texto:
+
+```php
+public function getSexoTextoAttribute()
+{
+    return match ($this->Sexo) {
+        1 => 'Masculino',
+        2 => 'Femenino',
+        default => 'No definido'
+    };
+}
+```
+
+## Búsqueda en el listado
+
+El índice acepta el parámetro `buscar` por query string. La búsqueda aplica un `WHERE LIKE` sobre `NumDoc`, `Nombres` y `Apellidos`:
+
+```php
+// app/Http/Controllers/aprendicesController.php
+$aprendices = Aprendices::with(['tipodocumento', 'eps'])
+    ->when($buscar, function ($query, $buscar) {
+        $query->where('NumDoc', 'like', "%$buscar%")
+              ->orWhere('Nombres', 'like', "%$buscar%")
+              ->orWhere('Apellidos', 'like', "%$buscar%");
+    })
+    ->paginate(10)
+    ->withQueryString();
+```
+
+## Notificaciones por correo
+
+<Note>
+  El modelo `aprendices` incluye un método `booted()` que envía correos automáticamente al correo configurado en `mail.from.address` en tres eventos:
+
+  - **Creación** (`created`): notifica que se creó un nuevo registro.
+  - **Actualización** (`updated`): notifica los campos que cambiaron, incluyendo el valor anterior y el nuevo.
+  - **Eliminación** (`deleted`): notifica que el registro fue eliminado.
+
+  Estas notificaciones usan la clase `App\Mail\AprendizMail`. Es necesario tener configurado correctamente el driver de correo en el archivo `.env` para que funcionen.
+</Note>
+
+## Relaciones del modelo
+
+| Relación | Tipo | Modelo relacionado | Clave foránea |
+|---|---|---|---|
+| `tipodocumento` | `belongsTo` | `TiposDocumentos` | `tbltiposdocumentos_Nis` |
+| `eps` | `belongsTo` | `Eps` | `tbleps_Nis` |
+
+## Rutas disponibles
+
+| Método | URI | Acción |
+|---|---|---|
+| GET | `/aprendices` | Listado paginado |
+| GET | `/aprendices/create` | Formulario de creación |
+| POST | `/aprendices` | Guardar nuevo registro |
+| GET | `/aprendices/{Nis}` | Ver detalle |
+| GET | `/aprendices/{Nis}/edit` | Formulario de edición |
+| PUT | `/aprendices/{Nis}` | Actualizar registro |
+| DELETE | `/aprendices/{Nis}` | Eliminar registro |

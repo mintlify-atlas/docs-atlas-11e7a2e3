@@ -1,0 +1,265 @@
+---
+title: "Configuración"
+description: "Variables de entorno y configuración de APPSeguimiento"
+---
+
+APPSeguimiento se configura mediante el archivo `.env` en la raíz del proyecto. Copia `.env.example` como punto de partida:
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+## Aplicación
+
+Estas variables controlan el comportamiento general de la aplicación:
+
+<ParamField path="APP_NAME" type="string" default="Laravel">
+  Nombre de la aplicación. Se muestra en notificaciones y como valor predeterminado de `MAIL_FROM_NAME`.
+
+  ```env
+  APP_NAME=APPSeguimiento
+  ```
+</ParamField>
+
+<ParamField path="APP_ENV" type="string" default="local">
+  Entorno de ejecución. Valores válidos: `local`, `staging`, `production`. Afecta el comportamiento de errores y algunos servicios.
+
+  ```env
+  APP_ENV=production
+  ```
+</ParamField>
+
+<ParamField path="APP_KEY" type="string" required>
+  Clave de cifrado de 32 caracteres usada por Laravel para cifrar sesiones, cookies y otros datos sensibles. Generada con `php artisan key:generate`.
+
+  ```env
+  APP_KEY=base64:TU_CLAVE_GENERADA_AQUI
+  ```
+</ParamField>
+
+<ParamField path="APP_DEBUG" type="boolean" default="true">
+  Cuando es `true`, Laravel muestra trazas de error detalladas. Establece en `false` en producción.
+
+  ```env
+  APP_DEBUG=false
+  ```
+</ParamField>
+
+<ParamField path="APP_URL" type="string" default="http://localhost">
+  URL base de la aplicación. Usada por Artisan para generar URLs absolutas.
+
+  ```env
+  APP_URL=https://seguimiento.sena.edu.co
+  ```
+</ParamField>
+
+<Warning>
+  **APP_KEY** debe estar definido antes de desplegar la aplicación. Sin esta clave, Laravel no puede cifrar sesiones y los usuarios no podrán iniciar sesión. Genera la clave con `php artisan key:generate` y nunca la compartas ni la expongas en repositorios públicos.
+</Warning>
+
+## Base de datos
+
+<ParamField path="DB_CONNECTION" type="string" default="sqlite">
+  Motor de base de datos. Valores válidos: `sqlite`, `mysql`, `mariadb`, `pgsql`, `sqlsrv`.
+
+  ```env
+  DB_CONNECTION=mysql
+  ```
+</ParamField>
+
+<ParamField path="DB_HOST" type="string" default="127.0.0.1">
+  Dirección del servidor de base de datos. Solo se usa cuando `DB_CONNECTION` no es `sqlite`.
+
+  ```env
+  DB_HOST=127.0.0.1
+  ```
+</ParamField>
+
+<ParamField path="DB_PORT" type="integer" default="3306">
+  Puerto del servidor de base de datos. Puerto predeterminado: `3306` para MySQL/MariaDB, `5432` para PostgreSQL.
+
+  ```env
+  DB_PORT=3306
+  ```
+</ParamField>
+
+<ParamField path="DB_DATABASE" type="string" default="database/database.sqlite">
+  Nombre de la base de datos (MySQL/PostgreSQL) o ruta al archivo (SQLite). Para SQLite, la ruta predeterminada es `database/database.sqlite` relativa a la raíz del proyecto.
+
+  ```env
+  DB_DATABASE=appseguimiento
+  ```
+</ParamField>
+
+<ParamField path="DB_USERNAME" type="string" default="root">
+  Usuario de la base de datos. No aplica para SQLite.
+
+  ```env
+  DB_USERNAME=appseguimiento_user
+  ```
+</ParamField>
+
+<ParamField path="DB_PASSWORD" type="string">
+  Contraseña del usuario de la base de datos. No aplica para SQLite.
+
+  ```env
+  DB_PASSWORD=tu_contrasena_segura
+  ```
+</ParamField>
+
+## Correo
+
+APPSeguimiento envía notificaciones automáticas por correo cuando se crean, actualizan o eliminan registros de aprendices. Configura estas variables para que los envíos lleguen a la bandeja de entrada.
+
+<ParamField path="MAIL_MAILER" type="string" default="log">
+  Controlador de correo. En desarrollo usa `log` (los correos se escriben en `storage/logs/laravel.log`). Para producción usa `smtp`.
+
+  Valores válidos: `smtp`, `sendmail`, `ses`, `postmark`, `resend`, `log`, `array`.
+
+  ```env
+  MAIL_MAILER=smtp
+  ```
+</ParamField>
+
+<ParamField path="MAIL_HOST" type="string" default="127.0.0.1">
+  Servidor SMTP para el envío de correos.
+
+  ```env
+  MAIL_HOST=smtp.gmail.com
+  ```
+</ParamField>
+
+<ParamField path="MAIL_PORT" type="integer" default="2525">
+  Puerto SMTP. Puertos comunes: `587` (STARTTLS), `465` (SSL/TLS), `25` (sin cifrado).
+
+  ```env
+  MAIL_PORT=587
+  ```
+</ParamField>
+
+<ParamField path="MAIL_USERNAME" type="string">
+  Usuario de autenticación SMTP (generalmente la dirección de correo).
+
+  ```env
+  MAIL_USERNAME=notificaciones@sena.edu.co
+  ```
+</ParamField>
+
+<ParamField path="MAIL_PASSWORD" type="string">
+  Contraseña de autenticación SMTP.
+
+  ```env
+  MAIL_PASSWORD=tu_contrasena_smtp
+  ```
+</ParamField>
+
+<ParamField path="MAIL_FROM_ADDRESS" type="string" default="hello@example.com">
+  Dirección de correo remitente para todas las notificaciones del sistema. Las notificaciones de aprendices se envían a esta misma dirección.
+
+  ```env
+  MAIL_FROM_ADDRESS=notificaciones@sena.edu.co
+  ```
+</ParamField>
+
+<ParamField path="MAIL_FROM_NAME" type="string" default="${APP_NAME}">
+  Nombre del remitente que aparece en los correos enviados.
+
+  ```env
+  MAIL_FROM_NAME=APPSeguimiento SENA
+  ```
+</ParamField>
+
+<Tip>
+  Configura `MAIL_FROM_ADDRESS` con una dirección real de correo institucional para que las notificaciones automáticas de cambios en aprendices (creación, actualización, eliminación) lleguen correctamente. Si `MAIL_MAILER=log`, los correos se registran en `storage/logs/laravel.log` sin enviarse realmente.
+</Tip>
+
+## Sesión
+
+<ParamField path="SESSION_DRIVER" type="string" default="database">
+  Controlador de almacenamiento de sesiones. APPSeguimiento usa `database` como predeterminado, almacenando sesiones en la tabla `sessions`.
+
+  Valores válidos: `file`, `cookie`, `database`, `memcached`, `redis`, `array`.
+
+  ```env
+  SESSION_DRIVER=database
+  ```
+</ParamField>
+
+<ParamField path="SESSION_LIFETIME" type="integer" default="120">
+  Tiempo de inactividad en minutos antes de que la sesión expire. El valor predeterminado es 120 minutos (2 horas).
+
+  ```env
+  SESSION_LIFETIME=120
+  ```
+</ParamField>
+
+<ParamField path="SESSION_ENCRYPT" type="boolean" default="false">
+  Cuando es `true`, el contenido de la sesión se cifra antes de almacenarse.
+
+  ```env
+  SESSION_ENCRYPT=false
+  ```
+</ParamField>
+
+## Almacenamiento y colas
+
+<ParamField path="FILESYSTEM_DISK" type="string" default="local">
+  Disco de almacenamiento predeterminado para archivos. APPSeguimiento almacena las bitácoras PDF en el disco `public` (requiere `php artisan storage:link`).
+
+  Valores válidos: `local`, `public`, `s3`.
+
+  ```env
+  FILESYSTEM_DISK=local
+  ```
+</ParamField>
+
+<ParamField path="QUEUE_CONNECTION" type="string" default="database">
+  Controlador de cola para trabajos asíncronos. El valor `database` almacena los trabajos en la tabla `jobs`. Cambia a `sync` para ejecutar trabajos de forma sincrónica (útil en desarrollo).
+
+  ```env
+  QUEUE_CONNECTION=database
+  ```
+</ParamField>
+
+<ParamField path="CACHE_STORE" type="string" default="database">
+  Almacén de caché predeterminado. El valor `database` usa la tabla `cache`.
+
+  Valores válidos: `database`, `file`, `redis`, `memcached`, `array`.
+
+  ```env
+  CACHE_STORE=database
+  ```
+</ParamField>
+
+## Ejemplo de configuración para producción
+
+```env
+APP_NAME=APPSeguimiento
+APP_ENV=production
+APP_KEY=base64:TU_CLAVE_GENERADA
+APP_DEBUG=false
+APP_URL=https://seguimiento.sena.edu.co
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=appseguimiento
+DB_USERNAME=appseguimiento_user
+DB_PASSWORD=contrasena_segura
+
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=notificaciones@sena.edu.co
+MAIL_PASSWORD=tu_contrasena_smtp
+MAIL_FROM_ADDRESS=notificaciones@sena.edu.co
+MAIL_FROM_NAME="APPSeguimiento SENA"
+```

@@ -1,0 +1,116 @@
+---
+title: "Bitácoras"
+description: "Carga y seguimiento de bitácoras en formato PDF"
+---
+
+Las **bitácoras** son documentos PDF que los instructores o coordinadores cargan al sistema para registrar y evidenciar las actividades de formación. Cada archivo queda vinculado al usuario autenticado que lo subió y se almacena en el servidor con una ruta persistente.
+
+## Flujo de carga
+
+<Steps>
+  <Step title="Acceder al formulario">
+    Navegar a `GET /bitacoras/create`. Se muestra el formulario con dos campos: nombre del archivo y el archivo PDF.
+  </Step>
+  <Step title="Seleccionar el archivo">
+    El campo `bitacora` acepta únicamente archivos con tipo MIME `application/pdf` y tamaño máximo de **10 MB** (10 240 KB). El campo `NomArchivo` acepta hasta 45 caracteres.
+  </Step>
+  <Step title="Enviar el formulario">
+    El formulario hace `POST /bitacoras`. El controlador valida el archivo y lo almacena en `storage/app/public/Uploads/bitacoras` usando el disco `public`.
+  </Step>
+  <Step title="Guardar el registro">
+    Se crea un registro en la tabla `tblbitacoras` con el nombre, la ruta generada, el estado `'Creada'` y el `Nis` del usuario autenticado.
+  </Step>
+</Steps>
+
+## Reglas de validación
+
+```php
+// app/Http/Controllers/bitacorasController.php — método store()
+$request->validate([
+    'NomArchivo' => 'required|string|max:45',
+    'bitacora'   => 'required|file|mimes:pdf|max:10240'
+]);
+```
+
+## Almacenamiento del archivo
+
+```php
+// app/Http/Controllers/bitacorasController.php
+$archivo = $request->file('bitacora');
+$ruta = $archivo->store('Uploads/bitacoras', 'public');
+
+bitacoras::create([
+    'NomArchivo'      => $request->NomArchivo,
+    'Ruta'            => $ruta,
+    'Estado'          => 'Creada',
+    'tblusuarios_Nis' => Auth::user()->Nis
+]);
+```
+
+Laravel genera automáticamente un nombre de archivo único al usar `store()`. La ruta relativa resultante se guarda en la columna `Ruta` de la tabla.
+
+<Warning>
+  Para que los archivos subidos sean accesibles desde el navegador, se debe crear el enlace simbólico entre `storage/app/public` y `public/storage`. Ejecutar el siguiente comando una sola vez en el servidor:
+
+  ```bash
+  php artisan storage:link
+  ```
+
+  Sin este paso, los PDFs no se podrán visualizar ni descargar desde la interfaz.
+</Warning>
+
+## Listado de bitácoras
+
+La ruta `GET /bitacoras` muestra las bitácoras ordenadas de más reciente a más antigua, paginadas en grupos de 10. Se carga la relación `usuarios` para mostrar quién subió cada archivo:
+
+```php
+// app/Http/Controllers/bitacorasController.php — método index()
+$bitacoras = bitacoras::with('usuarios')
+    ->orderBy('created_at', 'desc')
+    ->paginate(10);
+```
+
+## Modelo
+
+El modelo `bitacoras` usa la tabla `tblbitacoras` con la llave primaria `Nis` y tiene `timestamps` activos:
+
+```php
+// app/Models/bitacoras.php
+protected $fillable = [
+    'NomArchivo', 'Ruta', 'Estado', 'create_at', 'update_at', 'tblusuarios_Nis'
+];
+public $timestamps = true;
+
+public function usuarios()
+{
+    return $this->belongsTo(User::class, 'tblusuarios_Nis', 'Nis');
+}
+```
+
+## Estado de las bitácoras
+
+Al momento de la carga, todas las bitácoras se registran con el estado `'Creada'`. El sistema actualmente no implementa transiciones de estado adicionales.
+
+## Funcionalidades no implementadas
+
+<Note>
+  Los métodos `show()`, `edit()`, `update()` y `destroy()` del controlador están declarados pero no tienen implementación. Esto significa que actualmente:
+
+  - No es posible ver el detalle individual de una bitácora por ruta.
+  - No es posible editar ni actualizar una bitácora existente.
+  - No es posible eliminar una bitácora desde la interfaz.
+
+  Estas funcionalidades están pendientes de desarrollo.
+</Note>
+
+## Rutas disponibles
+
+| Método | URI | Estado | Descripción |
+|---|---|---|---|
+| GET | `/bitacoras` | Implementado | Listado paginado |
+| GET | `/bitacoras/create` | Implementado | Formulario de carga |
+| POST | `/bitacoras` | Implementado | Subir archivo PDF |
+| GET | `/bitacoras/{id}` | Sin implementar | Ver detalle |
+| GET | `/bitacoras/{id}/edit` | Sin implementar | Formulario de edición |
+| PUT | `/bitacoras/{id}` | Sin implementar | Actualizar bitácora |
+| DELETE | `/bitacoras/{id}` | Sin implementar | Eliminar bitácora |
